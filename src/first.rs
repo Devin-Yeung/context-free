@@ -23,16 +23,68 @@ impl<'grammar> First<'grammar> {
         First { grammar, lookup }
     }
 
-    fn symbols(&self) -> HashSet<&str> {
-        let mut symbols = HashSet::new();
+    fn first(&mut self) {
+        let mut first: HashMap<&Term, HashSet<&str>> = HashMap::new();
+
+        // initialize the first table
+        self.symbols()
+            .into_iter()
+            .filter(|t| matches!(*t, Term::Terminal(_)))
+            .for_each(|t| {
+                if self.produce_epsilon(t) {
+                    // Rule2: If X is an ε-production, then add ε to First(X)
+                    first.get_mut(t).unwrap().insert("ε");
+                }
+
+                match t {
+                    Term::Terminal(s) => {
+                        // Rule1: If X is a terminal, then First(X) = { X }
+                        first.insert(t, HashSet::from([s.as_str()]));
+                    }
+                    Term::Nonterminal(_) => {
+                        first.insert(t, HashSet::new());
+                    }
+                };
+            });
+
         self.grammar.productions_iter().for_each(|production| {
             production.rhs_iter().for_each(|expr| {
                 expr.terms_iter().for_each(|term| {
-                    match term {
-                        Term::Terminal(ref s) | Term::Nonterminal(ref s) => {
-                            if !s.is_empty() {
-                                symbols.insert(term);
-                            }
+                    if matches!(*term, Term::Nonterminal(_)) {
+                        // Rule3: If 𝑋 is a non-terminal and 𝑋 → 𝑌1 𝑌2 ... 𝑌k,
+                        // then add 𝐹𝑖𝑟𝑠𝑡(𝑌1) ∖ {𝜀} to 𝐹𝑖𝑟𝑠𝑡(𝑋)
+                    }
+                })
+            });
+        });
+    }
+
+    fn produce_epsilon(&self, term: &Term) -> bool {
+        match term {
+            Term::Terminal(_) => false,
+            Term::Nonterminal(nt) => {
+                let production = self.lookup.get(nt.as_str()).unwrap();
+                production
+                    .rhs_iter()
+                    .map(|expr| {
+                        expr.terms_iter().all(|term| match term {
+                            Term::Terminal(_) => false,
+                            Term::Nonterminal(nt) => nt == "ε",
+                        })
+                    })
+                    .any(|v| v)
+            }
+        }
+    }
+
+    fn symbols(&'grammar self) -> HashSet<&'grammar Term> {
+        let mut symbols = HashSet::new();
+        self.grammar.productions_iter().for_each(|production| {
+            production.rhs_iter().for_each(|expr| {
+                expr.terms_iter().for_each(|term| match term {
+                    Term::Terminal(ref s) | Term::Nonterminal(ref s) => {
+                        if !s.is_empty() {
+                            symbols.insert(term);
                         }
                     }
                 });
@@ -44,18 +96,18 @@ impl<'grammar> First<'grammar> {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashSet;
     use crate::first::First;
     use bnf::{Grammar, Term};
+    use std::collections::HashSet;
 
     pub fn grammar() -> Grammar {
         let input = r#"
         <E> ::= <T> <E'>
-        <E'> ::= '+' <T> <E'> | <𝜀>
+        <E'> ::= '+' <T> <E'> | <ε>
         <T> ::= <F> <T'>
-        <T'> ::= '*' <F> <T'> | <𝜀>
+        <T'> ::= '*' <F> <T'> | <ε>
         <F> ::= '(' <E> ')' | 'id'
-        <𝜀> ::= ''
+        <ε> ::= ''
         "#;
         let grammar: Grammar = input.parse().unwrap();
         grammar
@@ -65,8 +117,27 @@ mod tests {
     fn symbols() {
         let grammar = grammar();
         let first = First::new(&grammar);
-        assert_eq!(first.symbols().into_iter().map(|s| match s {
-            Term::Terminal(s) | Term::Nonterminal(s) => { s.as_str() }
-        }).collect::<HashSet<_>>(), ["+", "*", "(", ")", "id", "𝜀", "F", "E", "E'", "T'", "T"].into());
+        assert_eq!(
+            first
+                .symbols()
+                .into_iter()
+                .map(|s| match s {
+                    Term::Terminal(s) | Term::Nonterminal(s) => {
+                        s.as_str()
+                    }
+                })
+                .collect::<HashSet<_>>(),
+            ["+", "*", "(", ")", "id", "ε", "F", "E", "E'", "T'", "T"].into()
+        );
+    }
+
+    #[test]
+    fn produce_epsilon() {
+        let grammar = grammar();
+        let first = First::new(&grammar);
+        assert!(first.produce_epsilon(&Term::Nonterminal(String::from("E'"))));
+        assert!(first.produce_epsilon(&Term::Nonterminal(String::from("T'"))));
+        assert!(!first.produce_epsilon(&Term::Nonterminal(String::from("T"))));
+        assert!(!first.produce_epsilon(&Term::Nonterminal(String::from("E"))));
     }
 }
