@@ -29,14 +29,13 @@ impl<'grammar> First<'grammar> {
             production.rhs_iter().for_each(|expr| {
                 expr.terms_iter().for_each(|term| {
                     match term {
-                        Term::Terminal(ref s) => {
+                        Term::Terminal(ref s) | Term::Nonterminal(ref s) => {
                             if !s.is_empty() {
-                                symbols.insert(s.as_str());
+                                symbols.insert(term);
                             }
                         }
-                        _ => { /* skip */ }
-                    };
-                })
+                    }
+                });
             });
         });
         symbols
@@ -45,8 +44,9 @@ impl<'grammar> First<'grammar> {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashSet;
     use crate::first::First;
-    use bnf::Grammar;
+    use bnf::{Grammar, Term};
 
     pub fn grammar() -> Grammar {
         let input = r#"
@@ -65,6 +65,8 @@ mod tests {
     fn symbols() {
         let grammar = grammar();
         let first = First::new(&grammar);
-        assert_eq!(first.symbols(), ["+", "*", "(", ")", "id"].into());
+        assert_eq!(first.symbols().into_iter().map(|s| match s {
+            Term::Terminal(s) | Term::Nonterminal(s) => { s.as_str() }
+        }).collect::<HashSet<_>>(), ["+", "*", "(", ")", "id", "𝜀", "F", "E", "E'", "T'", "T"].into());
     }
 }
