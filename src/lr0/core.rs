@@ -1,20 +1,98 @@
 use crate::lr0::lookup::Lookup;
-use bnf::{Expression, Term};
-use std::collections::HashMap;
+use bnf::{Expression, Grammar, Term};
+use std::collections::HashSet;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct LR0Item<'grammar> {
     lhs: &'grammar Term,
     rhs: &'grammar Expression,
     delimiter: usize,
 }
 
+#[derive(Debug, Clone)]
 pub struct LR0ItemSet<'grammar> {
-    items: HashMap<Term, LR0Item<'grammar>>,
+    items: HashSet<LR0Item<'grammar>>,
+}
+
+impl<'grammar> FromIterator<LR0Item<'grammar>> for LR0ItemSet<'grammar> {
+    fn from_iter<T: IntoIterator<Item = LR0Item<'grammar>>>(iter: T) -> Self {
+        Self {
+            items: iter.into_iter().collect::<HashSet<_>>(),
+        }
+    }
 }
 
 impl<'grammar> LR0ItemSet<'grammar> {
-    pub fn closure(&self, grammar: &Lookup) -> LR0ItemSet<'grammar> {
-        todo!()
+    pub fn closure(&self, grammar: &'grammar Grammar) -> LR0ItemSet<'grammar> {
+        let lookup = Lookup::new(&grammar);
+
+        let mut closure = self.clone();
+
+        loop {
+            let mut extend = HashSet::new();
+
+            for item in &closure.items {
+                if let Some(x) = item.rhs.terms_iter().nth(item.delimiter) {
+                    // x is the term after dot
+                    for production in lookup.get(x) {
+                        let lr0_item = LR0Item {
+                            lhs: production.0,
+                            rhs: production.1,
+                            delimiter: 0,
+                        };
+                        if !closure.contains(&lr0_item) {
+                            extend.insert(lr0_item);
+                        }
+                    }
+                }
+            }
+
+            // check if closure change or not
+            if extend.is_empty() {
+                break;
+            } else {
+                closure.items.extend(extend);
+            }
+        }
+
+        closure
+    }
+
+    pub fn contains(&self, item: &LR0Item<'grammar>) -> bool {
+        self.items.contains(item)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::lr0::core::{LR0Item, LR0ItemSet};
+    use bnf::{Expression, Grammar, Term};
+    use std::str::FromStr;
+
+    pub fn grammar() -> Grammar {
+        let input = r#"
+        <E'> ::= <E>
+        <E> ::= <E> '+' <T> | <T>
+        <T> ::= <T> '*' <F> | <F>
+        <F> ::= '(' <E> ')' | 'id'
+        "#;
+        let grammar: Grammar = input.parse().unwrap();
+        grammar
+    }
+
+    #[test]
+    fn it_works() {
+        let lhs = Term::from_str("<E'>").unwrap();
+        let rhs = Expression::from_str("<E>").unwrap();
+
+        let lr0_item = LR0Item {
+            lhs: &lhs,
+            rhs: &rhs,
+            delimiter: 0,
+        };
+
+        let set = LR0ItemSet::from_iter(vec![lr0_item]);
+
+        assert_eq!(set.closure(&grammar()).items.len(), 7);
     }
 }

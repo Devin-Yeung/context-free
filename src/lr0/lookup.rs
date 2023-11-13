@@ -2,6 +2,7 @@ use bnf::{Expression, Grammar, Term};
 
 type LR0Production<'grammar> = (&'grammar Term, &'grammar Expression);
 
+#[derive(Debug)]
 pub struct Lookup<'grammar> {
     grammar: &'grammar Grammar,
     // lookup: HashMap<&'grammar Term, &'grammar Production>,
