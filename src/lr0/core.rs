@@ -95,4 +95,25 @@ mod test {
 
         assert_eq!(set.closure(&grammar()).items.len(), 7);
     }
+
+    #[test]
+    fn more_items() {
+        let set = [("<E'>", "<E>", 1usize), ("<E>", "<E> '+' <T>", 1usize)];
+        let set = set
+            .into_iter()
+            .map(|(lhs, rhs, delimiter)| {
+                let lhs = Term::from_str(lhs).unwrap();
+                let rhs = Expression::from_str(rhs).unwrap();
+                (lhs, rhs, delimiter)
+            })
+            .collect::<Vec<_>>();
+
+        let lr0_set: LR0ItemSet =
+            LR0ItemSet::from_iter(set.iter().map(|(lhs, rhs, delimiter)| LR0Item {
+                lhs: &lhs,
+                rhs: &rhs,
+                delimiter: *delimiter,
+            }));
+        assert_eq!(lr0_set.closure(&grammar()).items.len(), 2);
+    }
 }
