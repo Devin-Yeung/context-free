@@ -1,6 +1,7 @@
 use crate::lr0::lookup::Lookup;
 use bnf::{Expression, Grammar, Term};
 use std::collections::HashSet;
+use std::fmt::{Display, Formatter};
 use std::hash::Hash;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
@@ -8,6 +9,34 @@ pub struct LR0Item<'grammar> {
     pub(crate) lhs: &'grammar Term,
     pub(crate) rhs: &'grammar Expression,
     pub(crate) delimiter: usize,
+}
+
+impl<'grammar> Display for LR0Item<'grammar> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let mut s = Vec::new();
+        s.push(self.lhs.to_string());
+        s.push("->".to_string());
+        let mut rhs = self
+            .rhs
+            .terms_iter()
+            .map(|t| t.to_string())
+            .collect::<Vec<_>>();
+        rhs.insert(self.delimiter, "•".to_string());
+        s.extend(rhs);
+        f.write_str(&s.join(" "))
+    }
+}
+
+impl<'grammar> Display for LR0ItemSet<'grammar> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let s = self
+            .items
+            .iter()
+            .map(|i| i.to_string())
+            .collect::<Vec<_>>()
+            .join(", ");
+        f.write_fmt(format_args!("[{}]", s))
+    }
 }
 
 impl<'grammar> LR0Item<'grammar> {
@@ -18,7 +47,7 @@ impl<'grammar> LR0Item<'grammar> {
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct LR0ItemSet<'grammar> {
-    items: HashSet<LR0Item<'grammar>>,
+    pub(crate) items: HashSet<LR0Item<'grammar>>,
 }
 
 impl<'grammar> FromIterator<LR0Item<'grammar>> for LR0ItemSet<'grammar> {
