@@ -18,12 +18,13 @@ impl<'grammar> LR0Builder<'grammar> {
 
     fn build_transition(&mut self, initial: &LR0ItemSet<'grammar>) {
         let mut waiting = VecDeque::from([initial.closure(self.grammar)]);
+        self.closures.push(initial.closure(self.grammar));
 
         while !waiting.is_empty() {
             let cur = waiting.pop_front().unwrap();
             symbols(&self.grammar).iter().for_each(|term| {
                 let goto = cur.goto(self.grammar, term);
-                if !self.contains(&goto) {
+                if !goto.items.is_empty() && !self.contains(&goto) {
                     self.closures.push(goto);
                     waiting.push_back(self.closures.last().unwrap().clone());
                 }
