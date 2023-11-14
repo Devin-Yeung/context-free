@@ -1,12 +1,19 @@
 use crate::lr0::lookup::Lookup;
 use bnf::{Expression, Grammar, Term};
 use std::collections::HashSet;
+use std::hash::Hash;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct LR0Item<'grammar> {
     lhs: &'grammar Term,
     rhs: &'grammar Expression,
     delimiter: usize,
+}
+
+impl<'grammar> LR0Item<'grammar> {
+    pub fn expect(&self) -> Option<&Term> {
+        self.rhs.terms_iter().nth(self.delimiter)
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -23,6 +30,11 @@ impl<'grammar> FromIterator<LR0Item<'grammar>> for LR0ItemSet<'grammar> {
 }
 
 impl<'grammar> LR0ItemSet<'grammar> {
+    pub fn new() -> Self {
+        Self {
+            items: HashSet::new(),
+        }
+    }
     pub fn closure(&self, grammar: &'grammar Grammar) -> LR0ItemSet<'grammar> {
         let lookup = Lookup::new(&grammar);
 
@@ -56,6 +68,25 @@ impl<'grammar> LR0ItemSet<'grammar> {
         }
 
         closure
+    }
+
+    pub fn goto(&self, grammar: &'grammar Grammar, term: &'grammar Term) -> LR0ItemSet<'grammar> {
+        let items = self
+            .items
+            .iter()
+            .map(|item| {
+                if item.expect() == Some(term) {
+                    let mut bump = item.clone();
+                    bump.delimiter += 1;
+                    Some(bump)
+                } else {
+                    None
+                }
+            })
+            .filter_map(|item| item)
+            .collect::<HashSet<_>>();
+        let set = LR0ItemSet { items };
+        set.closure(grammar)
     }
 
     pub fn contains(&self, item: &LR0Item<'grammar>) -> bool {
@@ -115,5 +146,38 @@ mod test {
                 delimiter: *delimiter,
             }));
         assert_eq!(lr0_set.closure(&grammar()).items.len(), 2);
+    }
+
+    #[test]
+    fn goto() {
+        let grammar = grammar();
+        let lhs = Term::from_str("<E'>").unwrap();
+        let rhs = Expression::from_str("<E>").unwrap();
+
+        let lr0_item = LR0Item {
+            lhs: &lhs,
+            rhs: &rhs,
+            delimiter: 0,
+        };
+
+        let set = LR0ItemSet::from_iter(vec![lr0_item]);
+        let I_0 = set.closure(&grammar);
+        [
+            ("<E>", 2usize),
+            ("<T>", 2),
+            ("<F>", 1),
+            ("'('", 7),
+            ("'id'", 1),
+            ("<E'>", 0),
+            ("'+'", 0),
+            ("'*'", 0),
+            ("')'", 0),
+        ]
+        .iter()
+        .for_each(|(t, cnt)| {
+            let term = Term::from_str(t).unwrap();
+            let goto = I_0.goto(&grammar, &term);
+            assert_eq!(goto.items.len(), *cnt)
+        });
     }
 }
