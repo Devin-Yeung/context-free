@@ -5,9 +5,9 @@ use std::hash::Hash;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct LR0Item<'grammar> {
-    lhs: &'grammar Term,
-    rhs: &'grammar Expression,
-    delimiter: usize,
+    pub(crate) lhs: &'grammar Term,
+    pub(crate) rhs: &'grammar Expression,
+    pub(crate) delimiter: usize,
 }
 
 impl<'grammar> LR0Item<'grammar> {
@@ -16,7 +16,7 @@ impl<'grammar> LR0Item<'grammar> {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct LR0ItemSet<'grammar> {
     items: HashSet<LR0Item<'grammar>>,
 }
@@ -70,7 +70,7 @@ impl<'grammar> LR0ItemSet<'grammar> {
         closure
     }
 
-    pub fn goto(&self, grammar: &'grammar Grammar, term: &'grammar Term) -> LR0ItemSet<'grammar> {
+    pub fn goto(&self, grammar: &'grammar Grammar, term: &Term) -> LR0ItemSet<'grammar> {
         let items = self
             .items
             .iter()
