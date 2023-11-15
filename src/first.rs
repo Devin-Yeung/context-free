@@ -15,47 +15,46 @@ impl<'grammar> First<'grammar> {
         First { grammar, lookup }
     }
 
-    fn first(&mut self) {
+    fn first(&mut self) -> HashMap<&Term, HashSet<&str>> {
         let mut first: HashMap<&Term, HashSet<&str>> = HashMap::new();
 
         // initialize the first table
-        self.symbols()
-            .into_iter()
-            .filter(|t| matches!(*t, Term::Terminal(_)))
-            .for_each(|t| {
-                if self.produce_epsilon(t) {
-                    // Rule2: If X is an ε-production, then add ε to First(X)
-                    first.get_mut(t).unwrap().insert("ε");
+        self.symbols().into_iter().for_each(|t| {
+            match t {
+                Term::Terminal(s) => {
+                    // Rule1: If X is a terminal, then First(X) = { X }
+                    first.insert(t, HashSet::from([s.as_str()]));
                 }
+                Term::Nonterminal(_) => {
+                    first.insert(t, HashSet::new());
+                }
+            };
 
-                match t {
-                    Term::Terminal(s) => {
-                        // Rule1: If X is a terminal, then First(X) = { X }
-                        first.insert(t, HashSet::from([s.as_str()]));
-                    }
-                    Term::Nonterminal(_) => {
-                        first.insert(t, HashSet::new());
-                    }
-                };
-            });
+            if self.produce_epsilon(t) {
+                // Rule2: If X is an ε-production, then add ε to First(X)
+                first.get_mut(t).unwrap().insert("ε");
+            }
+        });
 
         self.grammar.productions_iter().for_each(|production| {
             production.rhs_iter().for_each(|expr| {
                 expr.terms_iter().for_each(|term| {
                     if matches!(*term, Term::Nonterminal(_)) {
-                        // Rule3: If X is a non-terminal and X → Y1 Y2 ... Yk,
-                        // then add First(Y1) ∖ {𝜀} to First(X)
                         let production = self.lookup.get(term).unwrap();
-                        production.rhs_iter().for_each(|expr| {
-                            // take the first
+                        production.rhs_iter().enumerate().for_each(|(idx, expr)| {
                             expr.terms_iter().take(1).for_each(|term0| {
                                 match term0 {
                                     Term::Terminal(_) => { /* skip */ }
                                     Term::Nonterminal(_) => {
-                                        // First (Y1) ∖ {ε}
-                                        let mut set = first.get(term0).unwrap().clone();
-                                        set.remove("ε");
-                                        first.get_mut(term).unwrap().extend(&set);
+                                        if idx == 0 {
+                                            // Rule3: If X is a non-terminal and X → Y1 Y2 ... Yk,
+                                            // then add First(Y1) ∖ {ε} to First(X)
+                                            let mut set = first
+                                                .get(term0)
+                                                .map_or_else(|| HashSet::new(), |set| set.clone());
+                                            set.remove("ε");
+                                            first.get_mut(term).unwrap().extend(&set);
+                                        }
                                     }
                                 }
                             })
@@ -64,11 +63,16 @@ impl<'grammar> First<'grammar> {
                 })
             });
         });
+        first
     }
 
     fn produce_epsilon(&self, term: &Term) -> bool {
-        let production = self.lookup.get(&term).unwrap();
+        let production = self.lookup.get(&term);
+        if production.is_none() {
+            return false;
+        }
         production
+            .unwrap()
             .rhs_iter()
             .map(|expr| {
                 expr.terms_iter().all(|term| match term {
@@ -113,6 +117,13 @@ mod tests {
         "#;
         let grammar: Grammar = input.parse().unwrap();
         grammar
+    }
+
+    #[test]
+    fn first() {
+        let grammar = grammar();
+        let mut first = First::new(&grammar);
+        dbg!(first.first());
     }
 
     #[test]
