@@ -41,14 +41,14 @@ impl<'grammar> First<'grammar> {
         loop {
             let mut changed = false;
 
-            // Rule3: If X is a non-terminal and X → Y1 Y2 ... Yk,
-            // then add First(Y1) ∖ {ε} to First(X)
             self.symbols()
                 .iter()
                 .filter(|term| matches!(*term, Term::Nonterminal(_)))
                 .for_each(|term| {
-                    println!("Checking Symbol: {}", term.to_string());
+                    println!("===> Checking Symbol: {}", term.to_string());
                     let production = self.lookup.get(term).unwrap();
+                    // Rule3: If X is a non-terminal and X → Y1 Y2 ... Yk,
+                    // then add First(Y1) ∖ {ε} to First(X)
                     for expr in production.rhs_iter() {
                         for term in expr
                             .terms_iter()
@@ -60,10 +60,10 @@ impl<'grammar> First<'grammar> {
                                 .map_or_else(|| HashSet::new(), |set| set.clone());
                             set.remove("ε");
                             // Push into First(X) and check if change or not
-                            let before = first.get(term).unwrap().len();
+                            let before = first.get(&production.lhs).unwrap().len();
                             first.get_mut(&production.lhs).unwrap().extend(&set);
                             println!("Push {:?} to First({})", set, production.lhs.to_string());
-                            let after = first.get(term).unwrap().len();
+                            let after = first.get(&production.lhs).unwrap().len();
                             if before != after {
                                 changed = true;
                             }
@@ -73,10 +73,22 @@ impl<'grammar> First<'grammar> {
                                 break;
                             }
                         }
+                        // Rule 5: If X is a non-terminal and X -> Y1 Y2 ... Yk,
+                        // and First(Yi) produce ε for all i, then add ε to First(X)
+                        if expr.terms_iter().all(|term| self.produce_epsilon(term)) {
+                            println!("Rule5: Push ε to First({})", production.lhs.to_string());
+                            let before = first.get(&production.lhs).unwrap().len();
+                            first.get_mut(&production.lhs).unwrap().insert("ε");
+                            let after = first.get(&production.lhs).unwrap().len();
+                            if before != after {
+                                changed = true;
+                            }
+                        }
                     }
                 });
 
             if !changed {
+                println!("Unchanged, break!");
                 break;
             }
         } // End of loop
