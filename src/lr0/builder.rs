@@ -1,11 +1,12 @@
 use crate::lr0::core::LR0ItemSet;
 use crate::utils::symbols;
-use bnf::Grammar;
-use std::collections::VecDeque;
+use bnf::{Grammar, Term};
+use std::collections::{HashMap, VecDeque};
 
 pub struct LR0Builder<'grammar> {
     grammar: &'grammar Grammar,
     closures: Vec<LR0ItemSet<'grammar>>,
+    transitions: HashMap<(usize, Term), usize>,
 }
 
 impl<'grammar> LR0Builder<'grammar> {
@@ -13,10 +14,11 @@ impl<'grammar> LR0Builder<'grammar> {
         LR0Builder {
             grammar,
             closures: Vec::new(),
+            transitions: HashMap::new(),
         }
     }
 
-    fn build_transition(&mut self, initial: &LR0ItemSet<'grammar>) {
+    fn build_closure(&mut self, initial: &LR0ItemSet<'grammar>) {
         let mut waiting = VecDeque::from([initial.closure(self.grammar)]);
         self.closures.push(initial.closure(self.grammar));
 
@@ -32,8 +34,33 @@ impl<'grammar> LR0Builder<'grammar> {
         }
     }
 
+    fn build_transition(&mut self) {
+        for closure in &self.closures {
+            for term in symbols(&self.grammar) {
+                let goto = closure.goto(self.grammar, term);
+                if goto.items.is_empty() {
+                    continue;
+                }
+                let goto_index = self.index_of(&goto);
+                let cur_index = self.index_of(&closure);
+                self.transitions
+                    .insert((cur_index, Term::clone(term)), goto_index);
+                println!(
+                    "goto(I_{}, {}) = I_{}",
+                    cur_index,
+                    term.to_string(),
+                    goto_index
+                );
+            }
+        }
+    }
+
     fn contains(&self, set: &LR0ItemSet<'grammar>) -> bool {
         self.closures.iter().any(|v| v == set)
+    }
+
+    fn index_of(&self, set: &LR0ItemSet<'grammar>) -> usize {
+        self.closures.iter().position(|v| v == set).unwrap()
     }
 }
 
