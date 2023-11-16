@@ -97,7 +97,73 @@ mod tests {
         let set = LR0ItemSet::from_iter(vec![lr0_item]);
 
         let mut builder = LR0Builder::new(&grammar);
-        builder.build_transition(&set);
+        builder.build_closure(&set);
         assert_eq!(builder.closures.len(), 12);
+        for closure in &builder.closures {
+            println!("{}", closure);
+        }
+        builder.build_transition();
+    }
+
+    #[test]
+    fn exercise() {
+        let grammar = r#"
+        <S> ::= <O> 'v' <C>
+        <O> ::= 'n'
+        <C> ::= <S>
+        <C> ::= 'n'
+        "#
+        .parse()
+        .unwrap();
+
+        let lhs = Term::from_str("<S'>").unwrap();
+        let rhs = Expression::from_str("<S>").unwrap();
+
+        let lr0_item = LR0Item {
+            lhs: &lhs,
+            rhs: &rhs,
+            delimiter: 0,
+        };
+
+        let set = LR0ItemSet::from_iter(vec![lr0_item]);
+
+        let mut builder = LR0Builder::new(&grammar);
+        builder.build_closure(&set);
+        dbg!(builder.closures.len());
+        for closure in &builder.closures {
+            println!("{}", closure);
+        }
+        builder.build_transition();
+    }
+
+    #[test]
+    fn check() {
+        let grammar = r#"
+        <P'> ::= <Q> 'id' <R>
+        <Q> ::= 'forall' | 'exist'
+        <R> ::= <E> '=' <E>
+        <F> ::= <E> '+' <T> | <T>
+        <T> ::= '(' <E> ')' | 'id'
+        "#
+        .parse()
+        .unwrap();
+
+        let lhs = Term::from_str("<X>").unwrap();
+        let rhs = Expression::from_str("<P'>").unwrap();
+
+        let lr0_item = LR0Item {
+            lhs: &lhs,
+            rhs: &rhs,
+            delimiter: 0,
+        };
+
+        let set = LR0ItemSet::from_iter(vec![lr0_item]);
+
+        let mut builder = LR0Builder::new(&grammar);
+        dbg!(builder.closures.len());
+        for closure in &builder.closures {
+            println!("{}", closure);
+        }
+        builder.build_closure(&set);
     }
 }
