@@ -1,5 +1,5 @@
 use crate::lr0::lookup::Lookup;
-use bnf::{Expression, Grammar, Term};
+use bnf::{Expression, Grammar, Production, Term};
 use std::collections::HashSet;
 use std::fmt::{Display, Formatter};
 use std::hash::Hash;
@@ -9,6 +9,20 @@ pub struct LR0Item<'grammar> {
     pub(crate) lhs: &'grammar Term,
     pub(crate) rhs: &'grammar Expression,
     pub(crate) delimiter: usize,
+}
+
+impl<'grammar> LR0Item<'grammar> {
+    pub fn from_production(production: &'grammar Production) -> Option<LR0Item<'grammar>> {
+        if production.rhs_iter().count() != 1 {
+            return None;
+        }
+        let rhs = production.rhs_iter().next().unwrap();
+        Some(LR0Item {
+            lhs: &production.lhs,
+            rhs,
+            delimiter: 0,
+        })
+    }
 }
 
 impl<'grammar> Display for LR0Item<'grammar> {

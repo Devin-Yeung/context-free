@@ -1,6 +1,6 @@
-use crate::lr0::core::LR0ItemSet;
+use crate::lr0::core::{LR0Item, LR0ItemSet};
 use crate::utils::symbols;
-use bnf::{Grammar, Term};
+use bnf::{Grammar, Production, Term};
 use std::collections::{HashMap, VecDeque};
 
 pub struct LR0Builder<'grammar> {
@@ -16,6 +16,12 @@ impl<'grammar> LR0Builder<'grammar> {
             closures: Vec::new(),
             transitions: HashMap::new(),
         }
+    }
+
+    pub fn build(&mut self, augmentation: &'grammar Production) {
+        let initial = LR0ItemSet::from_iter(vec![LR0Item::from_production(&augmentation).unwrap()]);
+        self.build_closure(&initial);
+        self.build_transition();
     }
 
     fn build_closure(&mut self, initial: &LR0ItemSet<'grammar>) {
@@ -68,7 +74,7 @@ impl<'grammar> LR0Builder<'grammar> {
 mod tests {
     use crate::lr0::builder::LR0Builder;
     use crate::lr0::core::{LR0Item, LR0ItemSet};
-    use bnf::{Expression, Grammar, Term};
+    use bnf::{Expression, Grammar, Production, Term};
     use std::str::FromStr;
 
     pub fn grammar() -> Grammar {
@@ -116,24 +122,13 @@ mod tests {
         .parse()
         .unwrap();
 
-        let lhs = Term::from_str("<S'>").unwrap();
-        let rhs = Expression::from_str("<S>").unwrap();
-
-        let lr0_item = LR0Item {
-            lhs: &lhs,
-            rhs: &rhs,
-            delimiter: 0,
-        };
-
-        let set = LR0ItemSet::from_iter(vec![lr0_item]);
-
         let mut builder = LR0Builder::new(&grammar);
-        builder.build_closure(&set);
-        dbg!(builder.closures.len());
+        let augmentation = Production::from_str("<S'> ::= <S>").unwrap();
+        builder.build(&augmentation);
+        assert_eq!(builder.closures.len(), 8);
         for closure in &builder.closures {
             println!("{}", closure);
         }
-        builder.build_transition();
     }
 
     #[test]
