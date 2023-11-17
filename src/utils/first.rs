@@ -60,7 +60,7 @@ impl<'grammar> First<'grammar> {
                             .filter(|term| term != &&Term::Terminal("ε".to_string()))
                         {
                             // First(Y1) ∖ {ε} to First(X)
-                            changed = builder.insert_first_no_epsilon(&production.lhs, term);
+                            changed |= builder.insert_first_no_epsilon(&production.lhs, term);
                             println!(
                                 "Rule3/4: Push First({}) \\ ε to First({})",
                                 term,
