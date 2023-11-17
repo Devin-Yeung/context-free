@@ -161,7 +161,14 @@ mod tests {
     fn first() {
         let grammar = grammar();
         let mut first = First::new(&grammar);
-        dbg!(first.first());
+        first.first().iter().for_each(|(lhs, rhs)| match lhs {
+            Term::Terminal(_) => {
+                assert_eq!(rhs.len(), 1)
+            }
+            Term::Nonterminal(_) => {
+                assert_eq!(rhs.len(), 2)
+            }
+        })
     }
 
     #[test]
