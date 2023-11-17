@@ -225,9 +225,9 @@ impl<'grammar> First<'grammar> {
 
 #[cfg(test)]
 mod tests {
-    use crate::first::First;
     use bnf::{Grammar, Term};
     use std::collections::HashSet;
+    use crate::utils::first::First;
 
     pub fn grammar() -> Grammar {
         let input = r#"

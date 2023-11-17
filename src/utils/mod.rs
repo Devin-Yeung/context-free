@@ -1,5 +1,8 @@
+
 use bnf::{Grammar, Term};
 use std::collections::HashSet;
+
+pub mod first;
 
 pub fn symbols(grammar: &Grammar) -> HashSet<&Term> {
     grammar
