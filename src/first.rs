@@ -1,4 +1,5 @@
 use bnf::{Grammar, Production, Term};
+use once_cell::sync::OnceCell;
 use std::collections::{HashMap, HashSet};
 
 pub struct First<'grammar> {
@@ -15,15 +16,20 @@ impl<'grammar> First<'grammar> {
         First { grammar, lookup }
     }
 
-    fn first(&mut self) -> HashMap<&Term, HashSet<&str>> {
-        let mut first: HashMap<&Term, HashSet<&str>> = HashMap::new();
+    pub fn epsilon() -> &'static Term {
+        static EPSILON: OnceCell<Term> = OnceCell::new();
+        EPSILON.get_or_init(|| Term::Terminal(String::from("ε")))
+    }
+
+    fn first(&mut self) -> HashMap<&Term, HashSet<&Term>> {
+        let mut first: HashMap<&Term, HashSet<&Term>> = HashMap::new();
 
         // initialize the first table
         self.symbols().into_iter().for_each(|t| {
             match t {
                 Term::Terminal(s) => {
                     // Rule1: If X is a terminal, then First(X) = { X }
-                    first.insert(t, HashSet::from([s.as_str()]));
+                    first.insert(t, HashSet::from([t]));
                     println!("Push {} to First({})", s, t.to_string());
                 }
                 Term::Nonterminal(_) => {
@@ -33,7 +39,7 @@ impl<'grammar> First<'grammar> {
 
             if self.produce_epsilon(t) {
                 // Rule2: If X is an ε-production, then add ε to First(X)
-                first.get_mut(t).unwrap().insert("ε");
+                first.get_mut(t).unwrap().insert(Self::epsilon());
                 println!("Push ε to First({})", t.to_string());
             }
         });
@@ -58,7 +64,7 @@ impl<'grammar> First<'grammar> {
                             let mut set = first
                                 .get(term)
                                 .map_or_else(|| HashSet::new(), |set| set.clone());
-                            set.remove("ε");
+                            set.remove(Self::epsilon());
                             // Push into First(X) and check if change or not
                             let before = first.get(&production.lhs).unwrap().len();
                             first.get_mut(&production.lhs).unwrap().extend(&set);
@@ -78,7 +84,10 @@ impl<'grammar> First<'grammar> {
                         if expr.terms_iter().all(|term| self.produce_epsilon(term)) {
                             println!("Rule5: Push ε to First({})", production.lhs.to_string());
                             let before = first.get(&production.lhs).unwrap().len();
-                            first.get_mut(&production.lhs).unwrap().insert("ε");
+                            first
+                                .get_mut(&production.lhs)
+                                .unwrap()
+                                .insert(Self::epsilon());
                             let after = first.get(&production.lhs).unwrap().len();
                             if before != after {
                                 changed = true;
