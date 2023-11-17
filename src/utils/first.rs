@@ -1,4 +1,4 @@
-use crate::utils::builder::FirstBuilder;
+use crate::utils::builder::FirstFollowBuilder;
 use bnf::{Grammar, Production, Term};
 use once_cell::sync::OnceCell;
 use std::collections::{HashMap, HashSet};
@@ -23,7 +23,7 @@ impl<'grammar> First<'grammar> {
     }
 
     fn first(&mut self) -> HashMap<&Term, HashSet<&Term>> {
-        let mut builder: FirstBuilder = FirstBuilder::new(&self.grammar);
+        let mut builder: FirstFollowBuilder = FirstFollowBuilder::new(&self.grammar);
 
         // initialize the first table
         self.symbols().into_iter().for_each(|t| {

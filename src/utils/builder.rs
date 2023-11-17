@@ -8,12 +8,12 @@ fn epsilon() -> &'static Term {
     EPSILON.get_or_init(|| Term::Terminal(String::from("ε")))
 }
 
-pub struct FirstBuilder<'grammar> {
+pub struct FirstFollowBuilder<'grammar> {
     inner: HashMap<&'grammar Term, HashSet<&'grammar Term>>,
 }
 
-impl<'grammar> FirstBuilder<'grammar> {
-    pub(crate) fn new(grammar: &'grammar Grammar) -> FirstBuilder<'grammar> {
+impl<'grammar> FirstFollowBuilder<'grammar> {
+    pub(crate) fn new(grammar: &'grammar Grammar) -> FirstFollowBuilder<'grammar> {
         let mut inner = HashMap::new();
 
         // initialize the table
@@ -24,7 +24,7 @@ impl<'grammar> FirstBuilder<'grammar> {
                 inner.insert(term, HashSet::new());
             });
 
-        FirstBuilder { inner }
+        FirstFollowBuilder { inner }
     }
 
     // Insert term to First(x)
