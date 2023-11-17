@@ -1,6 +1,83 @@
+use crate::utils::symbols;
 use bnf::{Grammar, Production, Term};
 use once_cell::sync::OnceCell;
 use std::collections::{HashMap, HashSet};
+
+fn epsilon() -> &'static Term {
+    static EPSILON: OnceCell<Term> = OnceCell::new();
+    EPSILON.get_or_init(|| Term::Terminal(String::from("ε")))
+}
+
+pub struct FirstBuilder<'grammar> {
+    inner: HashMap<&'grammar Term, HashSet<&'grammar Term>>,
+}
+
+impl<'grammar> FirstBuilder<'grammar> {
+    fn new(grammar: &'grammar Grammar) -> FirstBuilder<'grammar> {
+        let mut inner = HashMap::new();
+
+        // initialize the table
+        symbols(&grammar)
+            .into_iter()
+            .filter(|term| term != &epsilon()) // epsilon is a special non-terminal
+            .for_each(|term| {
+                inner.insert(term, HashSet::new());
+            });
+
+        FirstBuilder { inner }
+    }
+
+    // Insert term to First(x)
+    ///
+    /// return true if the First(x) changes
+    /// otherwise return false
+    fn insert_term(&mut self, x: &'grammar Term, term: &'grammar Term) -> bool {
+        // First(x)
+        let first_x = self.inner.get_mut(x).unwrap();
+
+        // Insert term to First(x)
+        let before = first_x.len();
+        first_x.insert(term);
+        let after = first_x.len();
+
+        // check if set changes
+        before != after
+    }
+
+    // Insert epsilon to First(x)
+    fn insert_epsilon(&mut self, x: &'grammar Term) -> bool {
+        self.insert_term(x, epsilon())
+    }
+
+    /// Insert First(y) \ { ε } into First(x)
+    ///
+    /// return true if the First(x) changes
+    /// otherwise return false
+    fn insert_first_no_epsilon(&mut self, x: &'grammar Term, y: &'grammar Term) -> bool {
+        // First(y)
+        let mut first_y = self
+            .inner
+            .get(y)
+            .map_or_else(|| HashSet::new(), |set| set.clone());
+        // First(y) \ { ε }
+        first_y.remove(epsilon());
+
+        // First(x)
+        let first_x = self.inner.get_mut(x).unwrap();
+
+        // Insert First(y) \ { ε } into First(x)
+        let before = first_x.len();
+        first_x.extend(first_y);
+        let after = first_x.len();
+
+        // check if set changes
+        return before != after;
+    }
+
+    fn build(self) -> HashMap<&'grammar Term, HashSet<&'grammar Term>> {
+        self.inner
+    }
+}
 
 pub struct First<'grammar> {
     grammar: &'grammar Grammar,
@@ -22,25 +99,23 @@ impl<'grammar> First<'grammar> {
     }
 
     fn first(&mut self) -> HashMap<&Term, HashSet<&Term>> {
-        let mut first: HashMap<&Term, HashSet<&Term>> = HashMap::new();
+        let mut builder: FirstBuilder = FirstBuilder::new(&self.grammar);
 
         // initialize the first table
         self.symbols().into_iter().for_each(|t| {
             match t {
                 Term::Terminal(s) => {
                     // Rule1: If X is a terminal, then First(X) = { X }
-                    first.insert(t, HashSet::from([t]));
-                    println!("Push {} to First({})", s, t.to_string());
+                    builder.insert_term(t, t);
+                    println!("Rule1: Push {} to First({})", s, t.to_string());
                 }
-                Term::Nonterminal(_) => {
-                    first.insert(t, HashSet::new());
-                }
+                Term::Nonterminal(_) => { /* skip */ }
             };
 
             if self.produce_epsilon(t) {
                 // Rule2: If X is an ε-production, then add ε to First(X)
-                first.get_mut(t).unwrap().insert(Self::epsilon());
-                println!("Push ε to First({})", t.to_string());
+                builder.insert_epsilon(t);
+                println!("Rule2: Push ε to First({})", t.to_string());
             }
         });
 
@@ -50,9 +125,9 @@ impl<'grammar> First<'grammar> {
             self.symbols()
                 .iter()
                 .filter(|term| matches!(*term, Term::Nonterminal(_)))
-                .for_each(|term| {
-                    println!("===> Checking Symbol: {}", term.to_string());
-                    let production = self.lookup.get(term).unwrap();
+                .for_each(|lhs| {
+                    println!("===> Checking Symbol: {}", lhs.to_string());
+                    let production = self.lookup.get(lhs).unwrap();
                     // Rule3: If X is a non-terminal and X → Y1 Y2 ... Yk,
                     // then add First(Y1) ∖ {ε} to First(X)
                     for expr in production.rhs_iter() {
@@ -61,18 +136,12 @@ impl<'grammar> First<'grammar> {
                             .filter(|term| term != &&Term::Terminal("ε".to_string()))
                         {
                             // First(Y1) ∖ {ε} to First(X)
-                            let mut set = first
-                                .get(term)
-                                .map_or_else(|| HashSet::new(), |set| set.clone());
-                            set.remove(Self::epsilon());
-                            // Push into First(X) and check if change or not
-                            let before = first.get(&production.lhs).unwrap().len();
-                            first.get_mut(&production.lhs).unwrap().extend(&set);
-                            println!("Push {:?} to First({})", set, production.lhs.to_string());
-                            let after = first.get(&production.lhs).unwrap().len();
-                            if before != after {
-                                changed = true;
-                            }
+                            changed = builder.insert_first_no_epsilon(&production.lhs, term);
+                            println!(
+                                "Rule3/4: Push First({}) \\ ε to First({})",
+                                term,
+                                production.lhs.to_string()
+                            );
                             // terminate (check next expression) if X does NOT produce ε
                             if !self.produce_epsilon(term) {
                                 println!("{} does NOT produce ε", term.to_string());
@@ -83,15 +152,7 @@ impl<'grammar> First<'grammar> {
                         // and First(Yi) produce ε for all i, then add ε to First(X)
                         if expr.terms_iter().all(|term| self.produce_epsilon(term)) {
                             println!("Rule5: Push ε to First({})", production.lhs.to_string());
-                            let before = first.get(&production.lhs).unwrap().len();
-                            first
-                                .get_mut(&production.lhs)
-                                .unwrap()
-                                .insert(Self::epsilon());
-                            let after = first.get(&production.lhs).unwrap().len();
-                            if before != after {
-                                changed = true;
-                            }
+                            changed = builder.insert_epsilon(&production.lhs);
                         }
                     }
                 });
@@ -102,7 +163,7 @@ impl<'grammar> First<'grammar> {
             }
         } // End of loop
 
-        first
+        builder.build()
     }
 
     fn produce_epsilon(&self, term: &Term) -> bool {
