@@ -49,29 +49,37 @@ impl<'grammar> FirstBuilder<'grammar> {
         self.insert_term(x, epsilon())
     }
 
+    /// First(x)
+    fn first(&self, x: &Term) -> HashSet<&'grammar Term> {
+        self.inner
+            .get(x)
+            .map_or_else(|| HashSet::new(), |set| set.clone())
+    }
+
+    fn insert_set(&mut self, x: &'grammar Term, set: HashSet<&'grammar Term>) -> bool {
+        // First(x)
+        let first_x = self.inner.get_mut(x).unwrap();
+
+        // Insert set into First(x)
+        let before = first_x.len();
+        first_x.extend(set);
+        let after = first_x.len();
+
+        // check if set changes
+        return before != after;
+    }
+
     /// Insert First(y) \ { ε } into First(x)
     ///
     /// return true if the First(x) changes
     /// otherwise return false
     fn insert_first_no_epsilon(&mut self, x: &'grammar Term, y: &'grammar Term) -> bool {
         // First(y)
-        let mut first_y = self
-            .inner
-            .get(y)
-            .map_or_else(|| HashSet::new(), |set| set.clone());
+        let mut first_y = self.first(y);
         // First(y) \ { ε }
         first_y.remove(epsilon());
-
-        // First(x)
-        let first_x = self.inner.get_mut(x).unwrap();
-
         // Insert First(y) \ { ε } into First(x)
-        let before = first_x.len();
-        first_x.extend(first_y);
-        let after = first_x.len();
-
-        // check if set changes
-        return before != after;
+        self.insert_set(x, first_y)
     }
 
     fn build(self) -> HashMap<&'grammar Term, HashSet<&'grammar Term>> {
