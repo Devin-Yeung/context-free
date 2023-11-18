@@ -22,8 +22,8 @@ impl<'grammar> First<'grammar> {
         EPSILON.get_or_init(|| Term::Terminal(String::from("ε")))
     }
 
-    fn first(&mut self) -> HashMap<&Term, HashSet<&Term>> {
-        let mut builder: FirstFollowBuilder = FirstFollowBuilder::new(&self.grammar);
+    pub fn first(&mut self) -> HashMap<&'grammar Term, HashSet<&'grammar Term>> {
+        let mut builder: FirstFollowBuilder = FirstFollowBuilder::new(self.grammar);
 
         // initialize the first table
         self.symbols().into_iter().for_each(|t| {
@@ -122,7 +122,7 @@ impl<'grammar> First<'grammar> {
             .any(|v| v)
     }
 
-    fn symbols(&'grammar self) -> HashSet<&'grammar Term> {
+    fn symbols(&self) -> HashSet<&'grammar Term> {
         let mut symbols = HashSet::new();
         self.grammar.productions_iter().for_each(|production| {
             production.rhs_iter().for_each(|expr| {

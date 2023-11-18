@@ -3,6 +3,7 @@ use std::collections::HashSet;
 
 pub mod builder;
 pub mod first;
+pub mod follow;
 
 pub fn symbols(grammar: &Grammar) -> HashSet<&Term> {
     grammar

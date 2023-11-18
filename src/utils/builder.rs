@@ -3,13 +3,18 @@ use bnf::{Grammar, Term};
 use once_cell::sync::OnceCell;
 use std::collections::{HashMap, HashSet};
 
-fn epsilon() -> &'static Term {
+pub fn epsilon() -> &'static Term {
     static EPSILON: OnceCell<Term> = OnceCell::new();
     EPSILON.get_or_init(|| Term::Terminal(String::from("ε")))
 }
 
+fn dollar() -> &'static Term {
+    static DOLLAR: OnceCell<Term> = OnceCell::new();
+    DOLLAR.get_or_init(|| Term::Terminal(String::from("$")))
+}
+
 pub struct FirstFollowBuilder<'grammar> {
-    inner: HashMap<&'grammar Term, HashSet<&'grammar Term>>,
+    pub(crate) inner: HashMap<&'grammar Term, HashSet<&'grammar Term>>,
 }
 
 impl<'grammar> FirstFollowBuilder<'grammar> {
@@ -49,8 +54,20 @@ impl<'grammar> FirstFollowBuilder<'grammar> {
         self.insert_term(x, epsilon())
     }
 
+    // Insert dollar to Follow(x)
+    pub(crate) fn insert_dollar(&mut self, x: &'grammar Term) -> bool {
+        self.insert_term(x, dollar())
+    }
+
     /// First(x)
     pub(crate) fn first(&self, x: &Term) -> HashSet<&'grammar Term> {
+        self.inner
+            .get(x)
+            .map_or_else(|| HashSet::new(), |set| set.clone())
+    }
+
+    /// Follow(x)
+    pub(crate) fn follow(&self, x: &Term) -> HashSet<&'grammar Term> {
         self.inner
             .get(x)
             .map_or_else(|| HashSet::new(), |set| set.clone())
@@ -80,6 +97,15 @@ impl<'grammar> FirstFollowBuilder<'grammar> {
         first_y.remove(epsilon());
         // Insert First(y) \ { ε } into First(x)
         self.insert_set(x, first_y)
+    }
+
+    /// Insert Follow(y) into Follow(x)
+    pub(crate) fn insert_follow(&mut self, x: &'grammar Term, y: &'grammar Term) -> bool {
+        // Follow(y)
+        let follow_y = self.follow(y);
+        println!("Insert {:?} to Follow({})", follow_y, x);
+        // Insert Follow(y) into Follow(x)
+        self.insert_set(x, follow_y)
     }
 
     pub(crate) fn build(self) -> HashMap<&'grammar Term, HashSet<&'grammar Term>> {
