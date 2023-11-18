@@ -201,6 +201,7 @@ impl<'grammar> FirstBuilder<'grammar> {
     }
 }
 
+#[cfg(test)]
 mod tests {
     use crate::utils::first::builder::FirstBuilder;
     use bnf::Term;

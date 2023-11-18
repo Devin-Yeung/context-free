@@ -177,8 +177,8 @@ mod tests {
     use crate::utils::follow::builder::FollowBuilder;
     use crate::utils::follow::Follow;
     use bnf::{Grammar, Term};
-    use std::collections::{HashMap, HashSet};
-    use std::ops::BitAnd;
+    use std::collections::HashSet;
+
     use std::str::FromStr;
 
     pub fn grammar() -> Grammar {
