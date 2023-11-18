@@ -7,6 +7,8 @@ pub mod first_v1;
 pub mod follow_v1;
 
 pub mod first;
+pub mod follow;
+
 pub fn symbols(grammar: &Grammar) -> HashSet<&Term> {
     grammar
         .productions_iter()
@@ -18,4 +20,9 @@ pub fn symbols(grammar: &Grammar) -> HashSet<&Term> {
 pub fn epsilon() -> &'static Term {
     static EPSILON: OnceCell<Term> = OnceCell::new();
     EPSILON.get_or_init(|| Term::Terminal(String::from("ε")))
+}
+
+fn dollar() -> &'static Term {
+    static DOLLAR: OnceCell<Term> = OnceCell::new();
+    DOLLAR.get_or_init(|| Term::Terminal(String::from("$")))
 }
