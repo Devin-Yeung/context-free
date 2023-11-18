@@ -61,9 +61,8 @@ impl<'grammar> Follow<'grammar> {
                                 .map_or_else(|| HashSet::new(), |set| set.clone());
                             first_yi.remove(epsilon());
                             println!(
-                                "Rule 2: Push First({}) \\ ε [{:?}] to Follow({})",
+                                "Rule 2: Push First({}) \\ ε to Follow({})",
                                 prev.unwrap().to_string(),
-                                first_yi,
                                 term.to_string()
                             );
                             changed |= follow.insert_set(term, first_yi);
@@ -73,13 +72,8 @@ impl<'grammar> Follow<'grammar> {
                     } // Rule 2 checking End
 
                     // Rule 3 checking
-                    for term in expr
-                        .terms_iter()
-                        .filter(|term| term != &epsilon())
-                        .collect::<Vec<_>>()
-                        .iter()
-                        .rev()
-                    {
+                    for term in expr.terms_iter().collect::<Vec<_>>().iter().rev() {
+                        // if
                         if matches!(term, Term::Terminal(_)) {
                             break;
                         }
@@ -100,7 +94,6 @@ impl<'grammar> Follow<'grammar> {
                 }
             }
 
-            println!("changed continue");
             if !changed {
                 break;
             }
