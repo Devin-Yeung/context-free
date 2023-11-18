@@ -5,6 +5,7 @@ pub mod builder;
 pub mod firstv1;
 pub mod follow;
 
+pub mod first;
 pub fn symbols(grammar: &Grammar) -> HashSet<&Term> {
     grammar
         .productions_iter()
