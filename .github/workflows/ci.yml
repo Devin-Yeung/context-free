@@ -98,30 +98,30 @@ jobs:
         run: cargo generate-lockfile
       - name: cargo test
         run: cargo test --locked --all-features --all-targets
-#  coverage:
-#    runs-on: ubuntu-latest
-#    name: ubuntu / stable / coverage
-#    steps:
-#      - uses: actions/checkout@v4
-#        with:
-#          submodules: true
-#      - name: Install stable
-#        uses: dtolnay/rust-toolchain@stable
-#      - name: Install tarpaulin
-#        uses: taiki-e/install-action@v2
-#        with:
-#          tool: cargo-tarpaulin
-#      - name: cargo generate-lockfile
-#        if: hashFiles('Cargo.lock') == ''
-#        run: cargo generate-lockfile
-#      - name: cargo tarpaulin
-#        run: cargo tarpaulin --verbose --all-features --workspace --timeout 120 -o xml
-#      - name: upload to coveralls
-#        uses: coverallsapp/github-action@main
-#        with:
-#          github-token: ${{ secrets.GITHUB_TOKEN }}
-#          file: cobertura.xml
-#          compare-ref: origin/master
+  coverage:
+    runs-on: ubuntu-latest
+    name: ubuntu / stable / coverage
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Install stable
+        uses: dtolnay/rust-toolchain@stable
+      - name: Install tarpaulin
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-tarpaulin
+      - name: cargo generate-lockfile
+        if: hashFiles('Cargo.lock') == ''
+        run: cargo generate-lockfile
+      - name: cargo tarpaulin
+        run: cargo tarpaulin --verbose --all-features --workspace --timeout 120 -o xml
+      - name: upload to coveralls
+        uses: coverallsapp/github-action@main
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          file: cobertura.xml
+          compare-ref: origin/master
   typos:
     name: Spell Check
     runs-on: ubuntu-latest
