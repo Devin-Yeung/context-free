@@ -17,7 +17,7 @@ impl<'grammar> FollowBuilder<'grammar> {
         let mut follow = HashMap::new();
 
         // initialize the table
-        symbols(&grammar)
+        symbols(grammar)
             .into_iter()
             .filter(|term| term != &epsilon()) // epsilon is a special non-terminal
             .for_each(|term| {
@@ -25,7 +25,7 @@ impl<'grammar> FollowBuilder<'grammar> {
             });
 
         let follow = RefCell::new(follow);
-        let first = First::new(&grammar).first;
+        let first = First::new(grammar).first;
 
         FollowBuilder {
             grammar,
@@ -37,12 +37,12 @@ impl<'grammar> FollowBuilder<'grammar> {
     pub fn build_follow(&mut self, start: &'grammar Term) {
         // Rule 1: If X is a start symbol, then Follow(X) = { $ }
         self.insert_dollar(start);
-        println!("Rule 1: Push $ to Follow({})", start.to_string());
+        println!("Rule 1: Push $ to Follow({})", start);
 
         loop {
             let mut changed = false;
             for production in self.grammar.productions_iter() {
-                println!("==> Checking production {}", production.lhs.to_string());
+                println!("==> Checking production {}", production.lhs);
                 for expr in production.rhs_iter() {
                     // Rule 2 checking
                     let mut prev: Option<&'grammar Term> = None;
@@ -57,12 +57,12 @@ impl<'grammar> FollowBuilder<'grammar> {
                             let mut first_yi = self
                                 .first
                                 .get(prev.unwrap())
-                                .map_or_else(|| HashSet::new(), |set| set.clone());
+                                .map_or_else(HashSet::new, |set| set.clone());
                             first_yi.remove(epsilon());
                             println!(
                                 "Rule 2: Push First({}) \\ ε to Follow({})",
-                                prev.unwrap().to_string(),
-                                term.to_string()
+                                prev.unwrap(),
+                                term
                             );
                             changed |= self.insert_set(term, first_yi);
                         }
@@ -80,13 +80,12 @@ impl<'grammar> FollowBuilder<'grammar> {
                         // then add Follow(X) to Follow(Yk)
                         println!(
                             "Rule 3: Push Follow({}) to Follow({})",
-                            production.lhs.to_string(),
-                            term.to_string()
+                            production.lhs, term
                         );
                         changed |= self.insert_follow(term, &production.lhs);
 
                         if !self.first_produce_epsilon(term) {
-                            println!("{} does not produce ε, break", term.to_string());
+                            println!("{} does not produce ε, break", term);
                             break;
                         }
                     } // Rule 3 checking End
@@ -145,14 +144,14 @@ impl<'grammar> FollowBuilder<'grammar> {
         let after = follow_x.len();
 
         // check if set changes
-        return before != after;
+        before != after
     }
 
     pub(crate) fn follow(&self, x: &Term) -> HashSet<&'grammar Term> {
         self.follow
             .borrow()
             .get(x)
-            .map_or_else(|| HashSet::new(), |set| set.clone())
+            .map_or_else(HashSet::new, |set| set.clone())
     }
 
     /// Insert Follow(tx) into Follow(rx)

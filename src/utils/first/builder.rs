@@ -20,7 +20,7 @@ impl<'grammar> FirstBuilder<'grammar> {
             .collect::<HashMap<_, _>>();
 
         // initialize the table
-        symbols(&grammar)
+        symbols(grammar)
             .into_iter()
             .filter(|term| term != &epsilon()) // epsilon is a special non-terminal
             .for_each(|term| {
@@ -37,7 +37,7 @@ impl<'grammar> FirstBuilder<'grammar> {
     }
 
     pub(crate) fn build_first(&mut self) {
-        symbols(&self.grammar)
+        symbols(self.grammar)
             .into_iter()
             .filter(|term| term != &epsilon())
             .for_each(|t| {
@@ -45,7 +45,7 @@ impl<'grammar> FirstBuilder<'grammar> {
                     Term::Terminal(s) => {
                         // Rule1: If X is a terminal, then First(X) = { X }
                         self.insert_term(t, t);
-                        println!("Rule1: Push {} to First({})", s, t.to_string());
+                        println!("Rule1: Push {} to First({})", s, t);
                     }
                     Term::Nonterminal(_) => { /* skip */ }
                 };
@@ -53,18 +53,18 @@ impl<'grammar> FirstBuilder<'grammar> {
                 if self.produce_epsilon(t) {
                     // Rule2: If X is an ε-production, then add ε to First(X)
                     self.insert_epsilon(t);
-                    println!("Rule2: Push ε to First({})", t.to_string());
+                    println!("Rule2: Push ε to First({})", t);
                 }
             });
 
         loop {
             let mut changed = false;
 
-            symbols(&self.grammar)
+            symbols(self.grammar)
                 .iter()
                 .filter(|term| matches!(*term, Term::Nonterminal(_)))
                 .for_each(|lhs| {
-                    println!("===> Checking Symbol: {}", lhs.to_string());
+                    println!("===> Checking Symbol: {}", lhs);
                     let production = self.lookup.get(lhs).unwrap();
                     // Rule3: If X is a non-terminal and X → Y1 Y2 ... Yk,
                     // then add First(Y1) ∖ {ε} to First(X)
@@ -77,19 +77,18 @@ impl<'grammar> FirstBuilder<'grammar> {
                             changed |= self.insert_first_no_epsilon(&production.lhs, term);
                             println!(
                                 "Rule3/4: Push First({}) \\ ε to First({})",
-                                term,
-                                production.lhs.to_string()
+                                term, production.lhs
                             );
                             // terminate (check next expression) if X does NOT produce ε
                             if !self.produce_epsilon(term) {
-                                println!("{} does NOT produce ε", term.to_string());
+                                println!("{} does NOT produce ε", term);
                                 break;
                             }
                         }
                         // Rule 5: If X is a non-terminal and X -> Y1 Y2 ... Yk,
                         // and First(Yi) produce ε for all i, then add ε to First(X)
                         if expr.terms_iter().all(|term| self.produce_epsilon(term)) {
-                            println!("Rule5: Push ε to First({})", production.lhs.to_string());
+                            println!("Rule5: Push ε to First({})", production.lhs);
                             changed = self.insert_epsilon(&production.lhs);
                         }
                     }
@@ -163,7 +162,7 @@ impl<'grammar> FirstBuilder<'grammar> {
         self.first
             .borrow()
             .get(x)
-            .map_or_else(|| HashSet::new(), |set| set.clone())
+            .map_or_else(HashSet::new, |set| set.clone())
     }
 
     pub(crate) fn insert_set(&self, x: &'grammar Term, set: HashSet<&'grammar Term>) -> bool {
@@ -177,7 +176,7 @@ impl<'grammar> FirstBuilder<'grammar> {
         let after = first_x.len();
 
         // check if set changes
-        return before != after;
+        before != after
     }
 
     /// Insert First(y) \ { ε } into First(x)
