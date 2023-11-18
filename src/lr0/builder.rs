@@ -73,24 +73,19 @@ impl<'grammar> LR0Builder<'grammar> {
 #[cfg(test)]
 mod tests {
     use crate::lr0::builder::LR0Builder;
-    use crate::lr0::core::{LR0Item, LR0ItemSet};
-    use bnf::{Expression, Grammar, Production, Term};
+    use bnf::Production;
     use std::str::FromStr;
 
-    pub fn grammar() -> Grammar {
-        let input = r#"
+    #[test]
+    fn it_works() {
+        let grammar = r#"
         <E'> ::= <E>
         <E> ::= <E> '+' <T> | <T>
         <T> ::= <T> '*' <F> | <F>
         <F> ::= '(' <E> ')' | 'id'
-        "#;
-        let grammar: Grammar = input.parse().unwrap();
-        grammar
-    }
-
-    #[test]
-    fn it_works() {
-        let grammar = grammar();
+        "#
+        .parse()
+        .unwrap();
         let augmentation = Production::from_str("<E'> ::= <E>").unwrap();
 
         let mut builder = LR0Builder::new(&grammar);
@@ -99,7 +94,7 @@ mod tests {
     }
 
     #[test]
-    fn exercise() {
+    fn object_clause() {
         let grammar = r#"
         <S> ::= <O> 'v' <C>
         <O> ::= 'n'
@@ -108,44 +103,10 @@ mod tests {
         "#
         .parse()
         .unwrap();
+        let augmentation = Production::from_str("<S'> ::= <S>").unwrap();
 
         let mut builder = LR0Builder::new(&grammar);
-        let augmentation = Production::from_str("<S'> ::= <S>").unwrap();
         builder.build(&augmentation);
         assert_eq!(builder.closures.len(), 8);
-        for closure in &builder.closures {
-            println!("{}", closure);
-        }
-    }
-
-    #[test]
-    fn check() {
-        let grammar = r#"
-        <P'> ::= <Q> 'id' <R>
-        <Q> ::= 'forall' | 'exist'
-        <R> ::= <E> '=' <E>
-        <F> ::= <E> '+' <T> | <T>
-        <T> ::= '(' <E> ')' | 'id'
-        "#
-        .parse()
-        .unwrap();
-
-        let lhs = Term::from_str("<X>").unwrap();
-        let rhs = Expression::from_str("<P'>").unwrap();
-
-        let lr0_item = LR0Item {
-            lhs: &lhs,
-            rhs: &rhs,
-            delimiter: 0,
-        };
-
-        let set = LR0ItemSet::from_iter(vec![lr0_item]);
-
-        let mut builder = LR0Builder::new(&grammar);
-        dbg!(builder.closures.len());
-        for closure in &builder.closures {
-            println!("{}", closure);
-        }
-        builder.build_closure(&set);
     }
 }
