@@ -141,7 +141,7 @@ impl<'grammar> First<'grammar> {
 
 #[cfg(test)]
 mod tests {
-    use crate::utils::first::First;
+    use crate::utils::firstv1::First;
     use bnf::{Grammar, Term};
     use std::collections::HashSet;
 

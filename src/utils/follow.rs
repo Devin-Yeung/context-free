@@ -1,5 +1,5 @@
 use crate::utils::builder::{epsilon, FirstFollowBuilder};
-use crate::utils::first::First;
+use crate::utils::firstv1::First;
 use bnf::{Grammar, Production, Term};
 use std::collections::{HashMap, HashSet};
 
