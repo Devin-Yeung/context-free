@@ -1,14 +1,8 @@
 use crate::utils::first::First;
-use crate::utils::symbols;
+use crate::utils::{epsilon, symbols};
 use bnf::{Grammar, Production, Term};
-use once_cell::sync::OnceCell;
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
-
-pub fn epsilon() -> &'static Term {
-    static EPSILON: OnceCell<Term> = OnceCell::new();
-    EPSILON.get_or_init(|| Term::Terminal(String::from("ε")))
-}
 
 pub struct FirstBuilder<'grammar> {
     pub(crate) grammar: &'grammar Grammar,
