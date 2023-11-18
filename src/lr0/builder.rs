@@ -91,24 +91,11 @@ mod tests {
     #[test]
     fn it_works() {
         let grammar = grammar();
-        let lhs = Term::from_str("<E'>").unwrap();
-        let rhs = Expression::from_str("<E>").unwrap();
-
-        let lr0_item = LR0Item {
-            lhs: &lhs,
-            rhs: &rhs,
-            delimiter: 0,
-        };
-
-        let set = LR0ItemSet::from_iter(vec![lr0_item]);
+        let augmentation = Production::from_str("<E'> ::= <E>").unwrap();
 
         let mut builder = LR0Builder::new(&grammar);
-        builder.build_closure(&set);
+        builder.build(&augmentation);
         assert_eq!(builder.closures.len(), 12);
-        for closure in &builder.closures {
-            println!("{}", closure);
-        }
-        builder.build_transition();
     }
 
     #[test]
