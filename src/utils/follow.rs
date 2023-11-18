@@ -114,6 +114,8 @@ impl<'grammar> Follow<'grammar> {
 mod tests {
     use crate::utils::follow::Follow;
     use bnf::{Grammar, Term};
+    use std::collections::{HashMap, HashSet};
+    use std::str::FromStr;
 
     pub fn grammar() -> Grammar {
         let input = r#"
@@ -127,11 +129,24 @@ mod tests {
         grammar
     }
 
+    fn get_follow<'a>(
+        follow: &HashMap<&'a Term, HashSet<&'a Term>>,
+        term: &str,
+    ) -> HashSet<&'a Term> {
+        let term = Term::from_str(term).unwrap();
+        follow.get(&term).unwrap().clone()
+    }
+
     #[test]
     fn it_works() {
         let grammar = grammar();
         let start = Term::Nonterminal("E".to_string());
         let follow = Follow::new(&grammar).follow(&start);
-        dbg!(follow);
+
+        assert_eq!(get_follow(&follow, "<E>").len(), 2);
+        assert_eq!(get_follow(&follow, "<E'>").len(), 2);
+        assert_eq!(get_follow(&follow, "<T>").len(), 3);
+        assert_eq!(get_follow(&follow, "<T'>").len(), 3);
+        assert_eq!(get_follow(&follow, "<F>").len(), 4);
     }
 }
