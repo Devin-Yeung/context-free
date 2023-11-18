@@ -1,5 +1,5 @@
 use crate::utils::builder::{epsilon, FirstFollowBuilder};
-use crate::utils::firstv1::First;
+use crate::utils::first_v1::First;
 use bnf::{Grammar, Production, Term};
 use std::collections::{HashMap, HashSet};
 
@@ -105,7 +105,7 @@ impl<'grammar> Follow<'grammar> {
 
 #[cfg(test)]
 mod tests {
-    use crate::utils::follow::Follow;
+    use crate::utils::follow_v1::Follow;
     use bnf::{Grammar, Term};
     use std::collections::{HashMap, HashSet};
     use std::str::FromStr;

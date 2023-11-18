@@ -3,8 +3,8 @@ use once_cell::sync::OnceCell;
 use std::collections::HashSet;
 
 pub mod builder;
-pub mod firstv1;
-pub mod follow;
+pub mod first_v1;
+pub mod follow_v1;
 
 pub mod first;
 pub fn symbols(grammar: &Grammar) -> HashSet<&Term> {
