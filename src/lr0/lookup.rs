@@ -18,8 +18,7 @@ impl<'grammar> Lookup<'grammar> {
             .grammar
             .productions_iter()
             .filter(|production| production.lhs == *term)
-            .map(|production| production.rhs_iter().map(|expr| (&production.lhs, expr)))
-            .flatten()
+            .flat_map(|production| production.rhs_iter().map(|expr| (&production.lhs, expr)))
             .collect::<Vec<_>>();
         prod
     }
@@ -28,8 +27,7 @@ impl<'grammar> Lookup<'grammar> {
         let prod = self
             .grammar
             .productions_iter()
-            .map(|production| production.rhs_iter().map(|expr| (&production.lhs, expr)))
-            .flatten()
+            .flat_map(|production| production.rhs_iter().map(|expr| (&production.lhs, expr)))
             .collect::<Vec<_>>();
         prod
     }

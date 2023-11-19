@@ -19,7 +19,7 @@ impl<'grammar> LR0Builder<'grammar> {
     }
 
     pub fn build(&mut self, augmentation: &'grammar Production) {
-        let initial = LR0ItemSet::from_iter(vec![LR0Item::from_production(&augmentation).unwrap()]);
+        let initial = LR0ItemSet::from_iter(vec![LR0Item::from_production(augmentation).unwrap()]);
         self.build_closure(&initial);
         self.build_transition();
     }
@@ -30,7 +30,7 @@ impl<'grammar> LR0Builder<'grammar> {
 
         while !waiting.is_empty() {
             let cur = waiting.pop_front().unwrap();
-            symbols(&self.grammar).iter().for_each(|term| {
+            symbols(self.grammar).iter().for_each(|term| {
                 let goto = cur.goto(self.grammar, term);
                 if !goto.items.is_empty() && !self.contains(&goto) {
                     self.closures.push(goto);
@@ -42,21 +42,16 @@ impl<'grammar> LR0Builder<'grammar> {
 
     fn build_transition(&mut self) {
         for closure in &self.closures {
-            for term in symbols(&self.grammar) {
+            for term in symbols(self.grammar) {
                 let goto = closure.goto(self.grammar, term);
                 if goto.items.is_empty() {
                     continue;
                 }
                 let goto_index = self.index_of(&goto);
-                let cur_index = self.index_of(&closure);
+                let cur_index = self.index_of(closure);
                 self.transitions
                     .insert((cur_index, Term::clone(term)), goto_index);
-                println!(
-                    "goto(I_{}, {}) = I_{}",
-                    cur_index,
-                    term.to_string(),
-                    goto_index
-                );
+                println!("goto(I_{}, {}) = I_{}", cur_index, term, goto_index);
             }
         }
     }
