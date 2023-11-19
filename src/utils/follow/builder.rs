@@ -34,7 +34,7 @@ impl<'grammar> FollowBuilder<'grammar> {
         }
     }
 
-    pub fn build_follow(&mut self, start: &'grammar Term) {
+    fn build_follow(&mut self, start: &'grammar Term) {
         // Rule 1: If X is a start symbol, then Follow(X) = { $ }
         self.insert_dollar(start);
         println!("Rule 1: Push $ to Follow({})", start);
@@ -98,7 +98,7 @@ impl<'grammar> FollowBuilder<'grammar> {
         }
     }
 
-    pub fn first_produce_epsilon(&self, term: &Term) -> bool {
+    fn first_produce_epsilon(&self, term: &Term) -> bool {
         self.first
             .get(term)
             .map_or(false, |first| first.contains(&epsilon()))
@@ -108,7 +108,7 @@ impl<'grammar> FollowBuilder<'grammar> {
     ///
     /// return true if the Follow(x) changes
     /// otherwise return false
-    pub(crate) fn insert_term(&self, x: &'grammar Term, term: &'grammar Term) -> bool {
+    fn insert_term(&self, x: &'grammar Term, term: &'grammar Term) -> bool {
         let mut follow = self.follow.borrow_mut();
         // Follow(x)
         let follow_x = follow.get_mut(x).unwrap();
@@ -122,18 +122,13 @@ impl<'grammar> FollowBuilder<'grammar> {
         before != after
     }
 
-    // Insert epsilon to First(x)
-    pub(crate) fn insert_epsilon(&self, x: &'grammar Term) -> bool {
-        self.insert_term(x, epsilon())
-    }
-
     // Insert dollar to Follow(x)
-    pub(crate) fn insert_dollar(&self, x: &'grammar Term) -> bool {
+    fn insert_dollar(&self, x: &'grammar Term) -> bool {
         self.insert_term(x, dollar())
     }
 
     // Insert set to Follow(x)
-    pub(crate) fn insert_set(&self, x: &'grammar Term, set: HashSet<&'grammar Term>) -> bool {
+    fn insert_set(&self, x: &'grammar Term, set: HashSet<&'grammar Term>) -> bool {
         let mut follow = self.follow.borrow_mut();
         // Follow(x)
         let follow_x = follow.get_mut(x).unwrap();
@@ -147,7 +142,7 @@ impl<'grammar> FollowBuilder<'grammar> {
         before != after
     }
 
-    pub(crate) fn follow(&self, x: &Term) -> HashSet<&'grammar Term> {
+    fn follow(&self, x: &Term) -> HashSet<&'grammar Term> {
         self.follow
             .borrow()
             .get(x)

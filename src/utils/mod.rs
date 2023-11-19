@@ -18,7 +18,7 @@ pub fn epsilon() -> &'static Term {
     EPSILON.get_or_init(|| Term::Terminal(String::from("ε")))
 }
 
-fn dollar() -> &'static Term {
+pub fn dollar() -> &'static Term {
     static DOLLAR: OnceCell<Term> = OnceCell::new();
     DOLLAR.get_or_init(|| Term::Terminal(String::from("$")))
 }

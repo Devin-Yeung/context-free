@@ -79,7 +79,7 @@ impl<'grammar> LR0ItemSet<'grammar> {
         }
     }
     pub fn closure(&self, grammar: &'grammar Grammar) -> LR0ItemSet<'grammar> {
-        let lookup = Lookup::new(&grammar);
+        let lookup = Lookup::new(grammar);
 
         let mut closure = self.clone();
 
@@ -117,7 +117,7 @@ impl<'grammar> LR0ItemSet<'grammar> {
         let items = self
             .items
             .iter()
-            .map(|item| {
+            .filter_map(|item| {
                 if item.expect() == Some(term) {
                     let mut bump = item.clone();
                     bump.delimiter += 1;
@@ -126,7 +126,6 @@ impl<'grammar> LR0ItemSet<'grammar> {
                     None
                 }
             })
-            .filter_map(|item| item)
             .collect::<HashSet<_>>();
         let set = LR0ItemSet { items };
         set.closure(grammar)
@@ -184,8 +183,8 @@ mod test {
 
         let lr0_set: LR0ItemSet =
             LR0ItemSet::from_iter(set.iter().map(|(lhs, rhs, delimiter)| LR0Item {
-                lhs: &lhs,
-                rhs: &rhs,
+                lhs,
+                rhs,
                 delimiter: *delimiter,
             }));
         assert_eq!(lr0_set.closure(&grammar()).items.len(), 2);

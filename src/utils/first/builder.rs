@@ -36,7 +36,7 @@ impl<'grammar> FirstBuilder<'grammar> {
         }
     }
 
-    pub(crate) fn build_first(&mut self) {
+    fn build_first(&mut self) {
         symbols(self.grammar)
             .into_iter()
             .filter(|term| term != &epsilon())
@@ -137,7 +137,7 @@ impl<'grammar> FirstBuilder<'grammar> {
     ///
     /// return true if the First(x) changes
     /// otherwise return false
-    pub(crate) fn insert_term(&self, x: &'grammar Term, term: &'grammar Term) -> bool {
+    fn insert_term(&self, x: &'grammar Term, term: &'grammar Term) -> bool {
         let mut first = self.first.borrow_mut();
         // First(x)
         dbg!(x);
@@ -153,19 +153,19 @@ impl<'grammar> FirstBuilder<'grammar> {
     }
 
     // Insert epsilon to First(x)
-    pub(crate) fn insert_epsilon(&self, x: &'grammar Term) -> bool {
+    fn insert_epsilon(&self, x: &'grammar Term) -> bool {
         self.insert_term(x, epsilon())
     }
 
     /// First(x)
-    pub(crate) fn first(&self, x: &Term) -> HashSet<&'grammar Term> {
+    fn first(&self, x: &Term) -> HashSet<&'grammar Term> {
         self.first
             .borrow()
             .get(x)
             .map_or_else(HashSet::new, |set| set.clone())
     }
 
-    pub(crate) fn insert_set(&self, x: &'grammar Term, set: HashSet<&'grammar Term>) -> bool {
+    fn insert_set(&self, x: &'grammar Term, set: HashSet<&'grammar Term>) -> bool {
         let mut first = self.first.borrow_mut();
         // First(x)
         let first_x = first.get_mut(x).unwrap();
@@ -183,7 +183,7 @@ impl<'grammar> FirstBuilder<'grammar> {
     ///
     /// return true if the First(x) changes
     /// otherwise return false
-    pub(crate) fn insert_first_no_epsilon(&self, x: &'grammar Term, y: &'grammar Term) -> bool {
+    fn insert_first_no_epsilon(&self, x: &'grammar Term, y: &'grammar Term) -> bool {
         // First(y)
         let mut first_y = self.first(y);
         // First(y) \ { ε }
