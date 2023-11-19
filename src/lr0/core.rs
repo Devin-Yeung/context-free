@@ -183,8 +183,8 @@ mod test {
 
         let lr0_set: LR0ItemSet =
             LR0ItemSet::from_iter(set.iter().map(|(lhs, rhs, delimiter)| LR0Item {
-                lhs: lhs,
-                rhs: rhs,
+                lhs,
+                rhs,
                 delimiter: *delimiter,
             }));
         assert_eq!(lr0_set.closure(&grammar()).items.len(), 2);
