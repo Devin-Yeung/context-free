@@ -10,8 +10,7 @@ impl<'grammar> IndexedGrammar<'grammar> {
     pub fn new(grammar: &'grammar Grammar) -> IndexedGrammar<'grammar> {
         let grammar = grammar
             .productions_iter()
-            .map(|production| production.rhs_iter().map(|expr| (expr, &production.lhs)))
-            .flatten()
+            .flat_map(|production| production.rhs_iter().map(|expr| (expr, &production.lhs)))
             .collect::<IndexMap<&Expression, &Term>>();
 
         IndexedGrammar { grammar }

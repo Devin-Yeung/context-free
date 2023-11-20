@@ -53,7 +53,7 @@ impl<'grammar> LR0Builder<'grammar> {
                 }
                 let goto_index = self.index_of(&goto);
                 let cur_index = self.index_of(closure);
-                self.transitions.insert((cur_index, &term), goto_index);
+                self.transitions.insert((cur_index, term), goto_index);
                 println!("goto(I_{}, {}) = I_{}", cur_index, term, goto_index);
             }
         }

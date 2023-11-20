@@ -15,6 +15,6 @@ impl<'grammar> Follow<'grammar> {
 
     pub fn follow_of(&self, x: &'grammar Term) -> impl Iterator<Item = &&Term> {
         // TODO: remove the unwrap?
-        self.follow.get(x).unwrap().into_iter()
+        self.follow.get(x).unwrap().iter()
     }
 }

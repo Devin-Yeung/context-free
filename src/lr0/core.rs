@@ -43,7 +43,7 @@ impl<'grammar> LR0Closure<'grammar> {
 
     pub fn transition<'a>(&self, from: usize, via: &Term) -> Option<usize> {
         debug_assert!(matches!(via, Term::Terminal(_)));
-        self.transitions.get(&(from, via)).map(|i| *i)
+        self.transitions.get(&(from, via)).copied()
     }
 }
 
