@@ -1,6 +1,7 @@
+use crate::lr0::builder::LR0Builder;
 use crate::lr0::lookup::Lookup;
 use bnf::{Expression, Grammar, Production, Term};
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 use std::hash::Hash;
 
@@ -9,6 +10,29 @@ pub struct LR0Item<'grammar> {
     pub(crate) lhs: &'grammar Term,
     pub(crate) rhs: &'grammar Expression,
     pub(crate) delimiter: usize,
+}
+
+pub struct LR0Closure<'grammar> {
+    pub(crate) closures: Vec<LR0ItemSet<'grammar>>,
+    pub(crate) transitions: HashMap<(usize, &'grammar Term), usize>,
+}
+
+impl<'grammar> LR0Closure<'grammar> {
+    pub fn new(
+        grammar: &'grammar Grammar,
+        augmentation: &'grammar Production,
+    ) -> LR0Closure<'grammar> {
+        LR0Builder::new(grammar).build(augmentation)
+    }
+
+    pub fn closures(&self) -> &Vec<LR0ItemSet<'grammar>> {
+        &self.closures
+    }
+
+    pub fn transition<'a>(&self, from: usize, via: &Term) -> Option<usize> {
+        debug_assert!(matches!(via, Term::Terminal(_)));
+        self.transitions.get(&(from, via)).map(|i| *i)
+    }
 }
 
 impl<'grammar> LR0Item<'grammar> {

@@ -1,4 +1,4 @@
-use crate::lr0::core::{LR0Item, LR0ItemSet};
+use crate::lr0::core::{LR0Closure, LR0Item, LR0ItemSet};
 use crate::utils::symbols;
 use bnf::{Grammar, Production, Term};
 use std::collections::{HashMap, VecDeque};
@@ -6,7 +6,7 @@ use std::collections::{HashMap, VecDeque};
 pub struct LR0Builder<'grammar> {
     grammar: &'grammar Grammar,
     closures: Vec<LR0ItemSet<'grammar>>,
-    transitions: HashMap<(usize, Term), usize>,
+    transitions: HashMap<(usize, &'grammar Term), usize>,
 }
 
 impl<'grammar> LR0Builder<'grammar> {
@@ -18,10 +18,14 @@ impl<'grammar> LR0Builder<'grammar> {
         }
     }
 
-    pub fn build(&mut self, augmentation: &'grammar Production) {
+    pub fn build(mut self, augmentation: &'grammar Production) -> LR0Closure {
         let initial = LR0ItemSet::from_iter(vec![LR0Item::from_production(augmentation).unwrap()]);
         self.build_closure(&initial);
         self.build_transition();
+        LR0Closure {
+            closures: self.closures,
+            transitions: self.transitions,
+        }
     }
 
     fn build_closure(&mut self, initial: &LR0ItemSet<'grammar>) {
@@ -49,8 +53,7 @@ impl<'grammar> LR0Builder<'grammar> {
                 }
                 let goto_index = self.index_of(&goto);
                 let cur_index = self.index_of(closure);
-                self.transitions
-                    .insert((cur_index, Term::clone(term)), goto_index);
+                self.transitions.insert((cur_index, &term), goto_index);
                 println!("goto(I_{}, {}) = I_{}", cur_index, term, goto_index);
             }
         }
@@ -67,7 +70,7 @@ impl<'grammar> LR0Builder<'grammar> {
 
 #[cfg(test)]
 mod tests {
-    use crate::lr0::builder::LR0Builder;
+    use crate::lr0::core::LR0Closure;
     use bnf::Production;
     use std::str::FromStr;
 
@@ -83,9 +86,10 @@ mod tests {
         .unwrap();
         let augmentation = Production::from_str("<E'> ::= <E>").unwrap();
 
-        let mut builder = LR0Builder::new(&grammar);
-        builder.build(&augmentation);
-        assert_eq!(builder.closures.len(), 12);
+        assert_eq!(
+            LR0Closure::new(&grammar, &augmentation).closures().len(),
+            12
+        );
     }
 
     #[test]
@@ -100,8 +104,6 @@ mod tests {
         .unwrap();
         let augmentation = Production::from_str("<S'> ::= <S>").unwrap();
 
-        let mut builder = LR0Builder::new(&grammar);
-        builder.build(&augmentation);
-        assert_eq!(builder.closures.len(), 8);
+        assert_eq!(LR0Closure::new(&grammar, &augmentation).closures().len(), 8);
     }
 }
