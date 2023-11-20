@@ -3,7 +3,7 @@ permissions:
   checks: write
   contents: read
   pull-requests: write # see https://github.com/reviewdog/action-eslint/issues/147
-on: [ pull_request ] # Support only pull_request event.
+on: [ pull_request, workflow_dispatch ] # Support only pull_request event or trigger manually
 jobs:
   cargo-clippy-suggest:
     strategy:
@@ -12,6 +12,7 @@ jobs:
         toolchain: [ stable ]
     name: suggester / cargo-clippy
     runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false # https://github.com/orgs/community/discussions/25722
     steps:
       - uses: actions/checkout@v4
         with:
