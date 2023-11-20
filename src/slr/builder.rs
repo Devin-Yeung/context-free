@@ -38,7 +38,7 @@ impl<'grammar> SLRTableBuilder<'grammar> {
         }
     }
 
-    pub fn build(mut self) {
+    pub fn build(self) {
         self.closure.enumerate_lr0().for_each(|(i, lr0)| {
             match lr0.expect() {
                 None => {
@@ -83,7 +83,7 @@ mod tests {
 
         let augmentation = Production::from_str("<E'> ::= <E>").unwrap();
 
-        let mut builder = SLRTableBuilder::new(&grammar, &augmentation);
+        let builder = SLRTableBuilder::new(&grammar, &augmentation);
         dbg!(builder.table.len());
         builder.build();
     }
