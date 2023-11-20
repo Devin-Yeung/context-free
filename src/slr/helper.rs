@@ -1,4 +1,4 @@
-use bnf::{Expression, Grammar, Term};
+use bnf::{Expression, Grammar, Production, Term};
 use indexmap::IndexMap;
 
 pub struct IndexedGrammar<'grammar> {
@@ -15,5 +15,14 @@ impl<'grammar> IndexedGrammar<'grammar> {
             .collect::<IndexMap<&Expression, &Term>>();
 
         IndexedGrammar { grammar }
+    }
+
+    pub fn get_index_of(&self, expr: &Expression) -> Option<usize> {
+        self.grammar.get_index_of(expr)
+    }
+
+    pub(crate) fn get(&self, expr: &Expression) -> Option<Production> {
+        let lhs = self.grammar.get(expr)?;
+        Some(Production::from_parts(Term::clone(lhs), vec![expr.clone()]))
     }
 }
