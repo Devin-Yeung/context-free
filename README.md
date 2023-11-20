@@ -16,6 +16,16 @@
 
 [mit-url]: https://github.com/Devin-Yeung/context-free/blob/master/LICENSE-MIT
 
+## RoadMap
+
+- [ ] Left Factoring
+- [ ] Left Recursion Elimination
+- [x] First(X)
+- [x] Follow(X)
+- [ ] LL Parsing Table
+- [x] LR(0) Closure
+- [ ] SLR Parsing Table
+
 ## License
 
 Licensed under either of
