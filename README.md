@@ -22,9 +22,10 @@
 - [ ] Left Recursion Elimination
 - [x] First(X)
 - [x] Follow(X)
-- [ ] LL Parsing Table
+- [ ] LL(1) Parsing Table
 - [x] LR(0) Closure
-- [ ] SLR Parsing Table
+- [ ] LR(0) Parsing Table
+- [ ] SLR(1) Parsing Table
 
 ## License
 
