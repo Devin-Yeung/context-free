@@ -12,4 +12,9 @@ impl<'grammar> Follow<'grammar> {
     pub fn new(grammar: &'grammar Grammar, start: &'grammar Term) -> Follow<'grammar> {
         FollowBuilder::new(grammar).build(start)
     }
+
+    pub fn follow_of(&self, x: &'grammar Term) -> impl Iterator<Item = &&Term> {
+        // TODO: remove the unwrap?
+        self.follow.get(x).unwrap().into_iter()
+    }
 }

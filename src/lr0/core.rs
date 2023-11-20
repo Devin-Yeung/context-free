@@ -29,6 +29,18 @@ impl<'grammar> LR0Closure<'grammar> {
         &self.closures
     }
 
+    pub fn enumerate_lr0(&self) -> impl Iterator<Item = (usize, &LR0Item)> {
+        self.closures
+            .iter()
+            .enumerate()
+            .flat_map(|(i, set)| set.items.iter().map(move |item| (i, item)))
+    }
+
+    /// number of states in the closure
+    pub fn len(&self) -> usize {
+        self.closures.len()
+    }
+
     pub fn transition<'a>(&self, from: usize, via: &Term) -> Option<usize> {
         debug_assert!(matches!(via, Term::Terminal(_)));
         self.transitions.get(&(from, via)).map(|i| *i)
