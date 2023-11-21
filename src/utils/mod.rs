@@ -1,6 +1,8 @@
 use bnf::{Grammar, Term};
 use once_cell::sync::OnceCell;
 use std::collections::HashSet;
+use std::hash::Hash;
+use std::path::Iter;
 
 pub mod first;
 pub mod follow;
@@ -15,6 +17,20 @@ pub fn symbols(grammar: &Grammar) -> HashSet<&Term> {
                 .chain(std::iter::once(&production.lhs))
         })
         .collect::<HashSet<_>>()
+}
+
+pub fn terminals(grammar: &Grammar) -> impl Iterator<Item = &Term> {
+    symbols(&grammar)
+        .into_iter()
+        .filter(|term| term != &epsilon())
+        .filter(|term| matches!(*term, Term::Terminal(_)))
+}
+
+pub fn nonterminals(grammar: &Grammar) -> impl Iterator<Item = &Term> {
+    symbols(&grammar)
+        .into_iter()
+        .filter(|term| term != &epsilon())
+        .filter(|term| matches!(*term, Term::Nonterminal(_)))
 }
 
 pub fn epsilon() -> &'static Term {
