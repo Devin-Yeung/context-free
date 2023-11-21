@@ -6,6 +6,7 @@ use crate::utils::follow::Follow;
 use bnf::{Grammar, Production, Term};
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::fmt::{format, Display, Formatter};
 use std::iter::{once, repeat};
 use tabled::builder::Builder;
 use tabled::Table;
@@ -16,7 +17,7 @@ pub struct SLRTable<'grammar> {
 }
 
 impl<'grammar> SLRTable<'grammar> {
-    pub fn table(&self) -> Table {
+    pub fn parsing_table(&self) -> Table {
         let mut builder = Builder::default();
 
         let header = self
@@ -155,6 +156,6 @@ mod tests {
 
         let builder = SLRTableBuilder::new(&grammar, &augmentation);
         let slr = builder.build();
-        println!("{}", slr.table());
+        insta::assert_display_snapshot!(slr);
     }
 }
