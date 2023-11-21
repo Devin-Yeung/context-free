@@ -29,7 +29,7 @@ impl<'grammar> LR0Closure<'grammar> {
         &self.closures
     }
 
-    pub fn enumerate_lr0(&self) -> impl Iterator<Item = (usize, &LR0Item)> {
+    pub fn enumerate_lr0<'a>(&'a self) -> impl Iterator<Item = (usize, &'a LR0Item<'grammar>)> {
         self.closures
             .iter()
             .enumerate()
@@ -90,7 +90,7 @@ impl<'grammar> Display for LR0ItemSet<'grammar> {
 }
 
 impl<'grammar> LR0Item<'grammar> {
-    pub fn expect(&self) -> Option<&Term> {
+    pub fn expect(&self) -> Option<&'grammar Term> {
         self.rhs.terms_iter().nth(self.delimiter)
     }
 }

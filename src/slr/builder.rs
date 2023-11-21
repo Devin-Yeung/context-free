@@ -3,6 +3,7 @@ use crate::slr::core::SLRInstruction;
 use crate::slr::helper::IndexedGrammar;
 use crate::utils::follow::Follow;
 use bnf::{Grammar, Production, Term};
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::iter::repeat;
 
@@ -16,7 +17,7 @@ pub struct SLRTableBuilder<'grammar> {
     grammar: IndexedGrammar<'grammar>,
     follow: Follow<'grammar>,
     closure: LR0Closure<'grammar>,
-    table: Vec<HashMap<&'grammar Term, SLRInstruction>>,
+    table: RefCell<Vec<HashMap<&'grammar Term, SLRInstruction>>>,
 }
 
 impl<'grammar> SLRTableBuilder<'grammar> {
@@ -27,15 +28,27 @@ impl<'grammar> SLRTableBuilder<'grammar> {
         let follow = Follow::new(grammar, &augmentation.lhs);
         let closure = LR0Closure::new(grammar, augmentation);
         let grammar = IndexedGrammar::new(grammar);
-        let table = repeat(HashMap::<&Term, SLRInstruction>::new())
-            .take(closure.len())
-            .collect();
+        let table = RefCell::new(
+            repeat(HashMap::<&Term, SLRInstruction>::new())
+                .take(closure.len())
+                .collect(),
+        );
         SLRTableBuilder {
             grammar,
             follow,
             closure,
             table,
         }
+    }
+
+    fn shift(&self, from: usize, via: &'grammar Term) {
+        let to = self.closure.transition(from, via).unwrap();
+        println!("Shift: goto(I_{}, {}) = I_{}", from, via, to);
+        let mut table = self.table.borrow_mut();
+        table
+            .get_mut(from)
+            .unwrap()
+            .insert(via, SLRInstruction::Shift(to));
     }
 
     pub fn build(self) {
@@ -51,12 +64,7 @@ impl<'grammar> SLRTableBuilder<'grammar> {
                 Some(t) => {
                     if matches!(t, Term::Terminal(_)) {
                         // Shift
-                        println!(
-                            "Shift: goto(I_{}, {}) = I_{}",
-                            i,
-                            t,
-                            self.closure.transition(i, t).unwrap()
-                        );
+                        self.shift(i, t);
                     }
                 }
             }
@@ -84,7 +92,6 @@ mod tests {
         let augmentation = Production::from_str("<E'> ::= <E>").unwrap();
 
         let builder = SLRTableBuilder::new(&grammar, &augmentation);
-        dbg!(builder.table.len());
         builder.build();
     }
 }
