@@ -69,7 +69,7 @@ impl<'grammar> SLRTableBuilder<'grammar> {
     }
 
     fn shift(&self, from: usize, via: &'grammar Term) {
-        let to = self.closure.transition(from, via).unwrap();
+        let to = self.closure.transition(from, via).unwrap(); // TODO: really not sure whether this unwrap is safe?
         println!("Shift: goto(I_{}, {}) = I_{}", from, via, to);
         let mut table = self.table.borrow_mut();
         table
@@ -93,8 +93,20 @@ impl<'grammar> SLRTableBuilder<'grammar> {
         }
     }
 
+    fn goto(&self, from: usize, via: &'grammar Term) {
+        debug_assert!(matches!(via, Term::Nonterminal(_)));
+        let to = self.closure.transition(from, via).unwrap(); // TODO: really not sure whether this unwrap is safe?
+        println!("Goto: goto(I_{}, {}) = I_{}", from, via, to);
+        let mut table = self.table.borrow_mut();
+        table
+            .get_mut(from)
+            .unwrap()
+            .insert(via, SLRInstruction::Goto(to));
+    }
+
     pub fn build(self) -> SLRTable<'grammar> {
         self.closure.enumerate_lr0().for_each(|(i, lr0)| {
+            // take a look at the char after the •
             match lr0.expect() {
                 // lr0 expect non character, which is the form of A -> 𝛼 •
                 None => {
@@ -102,9 +114,9 @@ impl<'grammar> SLRTableBuilder<'grammar> {
                     self.reduce(i, lr0)
                 }
                 Some(t) => {
-                    if matches!(t, Term::Terminal(_)) {
-                        // Shift
-                        self.shift(i, t);
+                    match t {
+                        Term::Terminal(_) => self.shift(i, t),   /* Shift */
+                        Term::Nonterminal(_) => self.goto(i, t), /* Goto */
                     }
                 }
             }
@@ -137,6 +149,6 @@ mod tests {
 
         let builder = SLRTableBuilder::new(&grammar, &augmentation);
         let slr = builder.build();
-        slr.table();
+        println!("{}", slr.table());
     }
 }
