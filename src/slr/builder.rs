@@ -1,17 +1,44 @@
 use crate::lr0::core::{LR0Closure, LR0Item};
 use crate::slr::core::SLRInstruction;
 use crate::slr::helper::IndexedGrammar;
+use crate::utils::dollar;
 use crate::utils::follow::Follow;
 use bnf::{Grammar, Production, Term};
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::iter::repeat;
+use std::iter::{once, repeat};
+use tabled::builder::Builder;
+use tabled::Table;
 
 pub struct SLRTable<'grammar> {
+    grammar: IndexedGrammar<'grammar>,
     table: Vec<HashMap<&'grammar Term, SLRInstruction>>,
 }
 
-impl<'grammar> SLRTable<'grammar> {}
+impl<'grammar> SLRTable<'grammar> {
+    pub fn table(&self) -> Table {
+        let mut builder = Builder::default();
+
+        let header = self
+            .grammar
+            .terminals()
+            .chain(once(dollar()))
+            .chain(self.grammar.non_terminals())
+            .collect::<Vec<_>>();
+
+        builder.set_header(header.iter().map(|t| t.to_string()));
+
+        self.table.iter().enumerate().for_each(|(_, table)| {
+            let row = header
+                .iter()
+                .map(|t| table.get(t).unwrap_or(&SLRInstruction::Empty))
+                .collect::<Vec<_>>();
+            builder.push_record(row);
+        });
+
+        builder.index().build()
+    }
+}
 
 pub struct SLRTableBuilder<'grammar> {
     grammar: IndexedGrammar<'grammar>,
@@ -66,7 +93,7 @@ impl<'grammar> SLRTableBuilder<'grammar> {
         }
     }
 
-    pub fn build(self) {
+    pub fn build(self) -> SLRTable<'grammar> {
         self.closure.enumerate_lr0().for_each(|(i, lr0)| {
             match lr0.expect() {
                 // lr0 expect non character, which is the form of A -> 𝛼 •
@@ -81,7 +108,11 @@ impl<'grammar> SLRTableBuilder<'grammar> {
                     }
                 }
             }
-        })
+        });
+        SLRTable {
+            grammar: self.grammar,
+            table: self.table.into_inner(),
+        }
     }
 }
 
@@ -105,6 +136,7 @@ mod tests {
         let augmentation = Production::from_str("<E'> ::= <E>").unwrap();
 
         let builder = SLRTableBuilder::new(&grammar, &augmentation);
-        builder.build();
+        let slr = builder.build();
+        slr.table();
     }
 }
