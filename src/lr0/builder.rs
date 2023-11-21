@@ -34,7 +34,7 @@ impl<'grammar> LR0Builder<'grammar> {
 
         while !waiting.is_empty() {
             let cur = waiting.pop_front().unwrap();
-            symbols(self.grammar).iter().for_each(|term| {
+            symbols(self.grammar).for_each(|term| {
                 let goto = cur.goto(self.grammar, term);
                 if !goto.items.is_empty() && !self.contains(&goto) {
                     self.closures.push(goto);

@@ -1,13 +1,11 @@
 use bnf::{Grammar, Term};
+use itertools::Itertools;
 use once_cell::sync::OnceCell;
-use std::collections::HashSet;
-use std::hash::Hash;
-use std::path::Iter;
 
 pub mod first;
 pub mod follow;
 
-pub fn symbols(grammar: &Grammar) -> HashSet<&Term> {
+pub fn symbols(grammar: &Grammar) -> impl Iterator<Item = &Term> {
     grammar
         .productions_iter()
         .flat_map(|production| {
@@ -16,7 +14,8 @@ pub fn symbols(grammar: &Grammar) -> HashSet<&Term> {
                 .flat_map(|expr| expr.terms_iter())
                 .chain(std::iter::once(&production.lhs))
         })
-        .collect::<HashSet<_>>()
+        .unique()
+        .sorted()
 }
 
 pub fn terminals(grammar: &Grammar) -> impl Iterator<Item = &Term> {
@@ -58,7 +57,6 @@ mod tests {
         "#
         .parse()
         .unwrap();
-
-        assert_eq!(symbols(&grammar).len(), 12);
+        assert_eq!(symbols(&grammar).count(), 12);
     }
 }

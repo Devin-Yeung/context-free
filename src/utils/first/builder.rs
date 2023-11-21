@@ -61,7 +61,6 @@ impl<'grammar> FirstBuilder<'grammar> {
             let mut changed = false;
 
             symbols(self.grammar)
-                .iter()
                 .filter(|term| matches!(*term, Term::Nonterminal(_)))
                 .for_each(|lhs| {
                     println!("===> Checking Symbol: {}", lhs);
