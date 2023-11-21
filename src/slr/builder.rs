@@ -1,4 +1,4 @@
-use crate::lr0::core::LR0Closure;
+use crate::lr0::core::{LR0Closure, LR0Item};
 use crate::slr::core::SLRInstruction;
 use crate::slr::helper::IndexedGrammar;
 use crate::utils::follow::Follow;
@@ -51,15 +51,28 @@ impl<'grammar> SLRTableBuilder<'grammar> {
             .insert(via, SLRInstruction::Shift(to));
     }
 
+    fn reduce(&self, index: usize, lr0: &LR0Item) {
+        let grammar_index = self.grammar.get_index_of(&lr0.rhs).unwrap();
+        let prod = self.grammar.get(lr0.rhs).unwrap();
+        let mut table = self.table.borrow_mut();
+        for term in self.follow.follow_of(&prod.lhs).collect::<Vec<_>>() {
+            table[index].insert(term, SLRInstruction::Reduce(grammar_index));
+            println!(
+                "Reduce: set (I_{}, {}) = r{}",
+                index,
+                term.to_string(),
+                grammar_index
+            );
+        }
+    }
+
     pub fn build(self) {
         self.closure.enumerate_lr0().for_each(|(i, lr0)| {
             match lr0.expect() {
+                // lr0 expect non character, which is the form of A -> 𝛼 •
                 None => {
                     /* Reduce */
-                    // let grammar_index = self.grammar.get_index_of(&lr0.rhs).unwrap();
-                    let prod = self.grammar.get(lr0.rhs).unwrap();
-                    let follow = self.follow.follow_of(&prod.lhs).collect::<Vec<_>>();
-                    println!("Reduce: Follow({}) = ({:?}) -> {}", lr0, follow, prod);
+                    self.reduce(i, lr0)
                 }
                 Some(t) => {
                     if matches!(t, Term::Terminal(_)) {
