@@ -51,4 +51,20 @@ mod test {
 
         insta::assert_display_snapshot!(first.tabled());
     }
+
+    #[test]
+    fn test_case_1() {
+        let grammar = r#"
+        <P> ::= <Q> 'id' <R>
+        <Q> ::= '∃' | '∀'
+        <R> ::= <E> '=' <E>
+        <E> ::= <T> <E'>
+        <E'> ::= '+' <T> <E'> | 'ε'
+        <T> ::= '(' <E> ')' | 'id'
+        "#
+        .parse()
+        .unwrap();
+        let first = First::new(&grammar);
+        insta::assert_display_snapshot!(first.tabled());
+    }
 }
