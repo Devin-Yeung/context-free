@@ -1,6 +1,8 @@
 use bnf::{Expression, Grammar, Production, Term};
 use indexmap::IndexMap;
 use itertools::Itertools;
+use tabled::builder::Builder;
+use tabled::Table;
 
 pub struct IndexedGrammar<'grammar> {
     /// rhs -> lhs
@@ -18,6 +20,15 @@ impl<'grammar> IndexedGrammar<'grammar> {
             .collect::<IndexMap<&Expression, &Term>>();
 
         IndexedGrammar { grammar, original }
+    }
+
+    pub fn grammar_table(&self) -> Table {
+        let mut builder = Builder::default();
+        builder.set_header(["Rule"]);
+        self.grammar.iter().for_each(|(rhs, lhs)| {
+            builder.push_record([format!("{} -> {}", lhs, rhs)]);
+        });
+        builder.index().build()
     }
 
     pub fn get_index_of(&self, expr: &Expression) -> Option<usize> {
