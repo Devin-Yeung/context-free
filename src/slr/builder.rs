@@ -17,6 +17,10 @@ pub struct SLRTable<'grammar> {
 }
 
 impl<'grammar> SLRTable<'grammar> {
+    pub fn grammar_table(&self) -> Table {
+        self.grammar.grammar_table()
+    }
+
     pub fn parsing_table(&self) -> Table {
         let mut builder = Builder::default();
 
@@ -43,6 +47,7 @@ impl<'grammar> SLRTable<'grammar> {
 
 impl<'grammar> Display for SLRTable<'grammar> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!("Grammar: \n{}\n", self.grammar_table()))?;
         f.write_fmt(format_args!("Table: \n{}", self.parsing_table()))
     }
 }
