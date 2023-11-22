@@ -1,5 +1,3 @@
-use std::fmt::{Display, Formatter};
-
 #[derive(Clone)]
 pub enum SLRInstruction {
     Reduce(usize),
@@ -19,8 +17,8 @@ impl ToString for SLRInstruction {
     }
 }
 
-impl Into<String> for &SLRInstruction {
-    fn into(self) -> String {
-        self.to_string()
+impl From<&SLRInstruction> for String {
+    fn from(val: &SLRInstruction) -> Self {
+        val.to_string()
     }
 }
