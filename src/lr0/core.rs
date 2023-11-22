@@ -1,9 +1,12 @@
 use crate::lr0::builder::LR0Builder;
 use crate::lr0::lookup::Lookup;
 use bnf::{Expression, Grammar, Production, Term};
+use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 use std::hash::Hash;
+use tabled::builder::Builder;
+use tabled::Table;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct LR0Item<'grammar> {
@@ -27,6 +30,14 @@ impl<'grammar> LR0Closure<'grammar> {
 
     pub fn closures(&self) -> &Vec<LR0ItemSet<'grammar>> {
         &self.closures
+    }
+
+    pub fn tabled(&self) -> Table {
+        let mut builder = Builder::default();
+        for set in self.closures.iter() {
+            builder.push_record([set.to_string()]);
+        }
+        builder.index().build()
     }
 
     pub fn enumerate_lr0<'a>(&'a self) -> impl Iterator<Item = (usize, &'a LR0Item<'grammar>)> {
@@ -69,6 +80,7 @@ impl<'grammar> Display for LR0Item<'grammar> {
             .rhs
             .terms_iter()
             .map(|t| t.to_string())
+            .sorted() // make display result deterministic
             .collect::<Vec<_>>();
         rhs.insert(self.delimiter, "•".to_string());
         s.extend(rhs);
@@ -82,6 +94,7 @@ impl<'grammar> Display for LR0ItemSet<'grammar> {
             .items
             .iter()
             .map(|i| i.to_string())
+            .sorted() // make display result deterministic
             .collect::<Vec<_>>()
             .join(", ");
         f.write_fmt(format_args!("[{}]", s))
@@ -173,8 +186,8 @@ impl<'grammar> LR0ItemSet<'grammar> {
 
 #[cfg(test)]
 mod test {
-    use crate::lr0::core::{LR0Item, LR0ItemSet};
-    use bnf::{Expression, Grammar, Term};
+    use crate::lr0::core::{LR0Closure, LR0Item, LR0ItemSet};
+    use bnf::{Expression, Grammar, Production, Term};
     use std::str::FromStr;
 
     pub fn grammar() -> Grammar {
@@ -190,18 +203,10 @@ mod test {
 
     #[test]
     fn it_works() {
-        let lhs = Term::from_str("<E'>").unwrap();
-        let rhs = Expression::from_str("<E>").unwrap();
-
-        let lr0_item = LR0Item {
-            lhs: &lhs,
-            rhs: &rhs,
-            delimiter: 0,
-        };
-
-        let set = LR0ItemSet::from_iter(vec![lr0_item]);
-
-        assert_eq!(set.closure(&grammar()).items.len(), 7);
+        let grammar = grammar();
+        let augmentation = Production::from_str("<E'> ::= <E>").unwrap();
+        let closure = LR0Closure::new(&grammar, &augmentation).tabled();
+        insta::assert_display_snapshot!(closure);
     }
 
     #[test]
