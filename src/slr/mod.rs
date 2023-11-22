@@ -1,3 +1,3 @@
-mod builder;
+pub mod builder;
 pub mod core;
 mod helper;
