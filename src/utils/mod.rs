@@ -19,15 +19,13 @@ pub fn symbols(grammar: &Grammar) -> impl Iterator<Item = &Term> {
 }
 
 pub fn terminals(grammar: &Grammar) -> impl Iterator<Item = &Term> {
-    symbols(&grammar)
-        .into_iter()
+    symbols(grammar)
         .filter(|term| term != &epsilon())
         .filter(|term| matches!(*term, Term::Terminal(_)))
 }
 
 pub fn nonterminals(grammar: &Grammar) -> impl Iterator<Item = &Term> {
-    symbols(&grammar)
-        .into_iter()
+    symbols(grammar)
         .filter(|term| term != &epsilon())
         .filter(|term| matches!(*term, Term::Nonterminal(_)))
 }

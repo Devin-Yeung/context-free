@@ -18,7 +18,6 @@ impl<'grammar> FollowBuilder<'grammar> {
 
         // initialize the table
         symbols(grammar)
-            .into_iter()
             .filter(|term| term != &epsilon()) // epsilon is a special non-terminal
             .for_each(|term| {
                 follow.insert(term, HashSet::new());

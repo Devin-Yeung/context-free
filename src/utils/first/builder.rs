@@ -21,7 +21,6 @@ impl<'grammar> FirstBuilder<'grammar> {
 
         // initialize the table
         symbols(grammar)
-            .into_iter()
             .filter(|term| term != &epsilon()) // epsilon is a special non-terminal
             .for_each(|term| {
                 first.insert(term, HashSet::new());
@@ -38,7 +37,6 @@ impl<'grammar> FirstBuilder<'grammar> {
 
     fn build_first(&mut self) {
         symbols(self.grammar)
-            .into_iter()
             .filter(|term| term != &epsilon())
             .for_each(|t| {
                 match t {

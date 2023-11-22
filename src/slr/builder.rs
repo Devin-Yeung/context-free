@@ -6,7 +6,7 @@ use crate::utils::follow::Follow;
 use bnf::{Grammar, Production, Term};
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::fmt::{format, Display, Formatter};
+use std::fmt::{Display, Formatter};
 use std::iter::{once, repeat};
 use tabled::builder::Builder;
 use tabled::Table;
@@ -91,17 +91,12 @@ impl<'grammar> SLRTableBuilder<'grammar> {
     }
 
     fn reduce(&self, index: usize, lr0: &LR0Item) {
-        let grammar_index = self.grammar.get_index_of(&lr0.rhs).unwrap();
+        let grammar_index = self.grammar.get_index_of(lr0.rhs).unwrap();
         let prod = self.grammar.get(lr0.rhs).unwrap();
         let mut table = self.table.borrow_mut();
         for term in self.follow.follow_of(&prod.lhs).collect::<Vec<_>>() {
             table[index].insert(term, SLRInstruction::Reduce(grammar_index));
-            println!(
-                "Reduce: set (I_{}, {}) = r{}",
-                index,
-                term.to_string(),
-                grammar_index
-            );
+            println!("Reduce: set (I_{}, {}) = r{}", index, term, grammar_index);
         }
     }
 
