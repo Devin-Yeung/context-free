@@ -3,6 +3,7 @@ use crate::utils::follow::Follow;
 use crate::utils::symbols;
 use crate::utils::{dollar, epsilon};
 use bnf::{Grammar, Term};
+use log::debug;
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 
@@ -36,12 +37,12 @@ impl<'grammar> FollowBuilder<'grammar> {
     fn build_follow(&mut self, start: &'grammar Term) {
         // Rule 1: If X is a start symbol, then Follow(X) = { $ }
         self.insert_dollar(start);
-        println!("Rule 1: Push $ to Follow({})", start);
+        debug!("[Follow Builder] Rule 1: Push $ to Follow({})", start);
 
         loop {
             let mut changed = false;
             for production in self.grammar.productions_iter() {
-                println!("==> Checking production {}", production.lhs);
+                debug!("[Follow Builder] Checking production {}", production.lhs);
                 for expr in production.rhs_iter() {
                     // Rule 2 checking
                     let mut prev: Option<&'grammar Term> = None;
@@ -58,8 +59,8 @@ impl<'grammar> FollowBuilder<'grammar> {
                                 .get(prev.unwrap())
                                 .map_or_else(HashSet::new, |set| set.clone());
                             first_yi.remove(epsilon());
-                            println!(
-                                "Rule 2: Push First({}) \\ ε to Follow({})",
+                            debug!(
+                                "[Follow Builder] Rule 2: Push First({}) \\ ε to Follow({})",
                                 prev.unwrap(),
                                 term
                             );
@@ -77,14 +78,14 @@ impl<'grammar> FollowBuilder<'grammar> {
                         }
                         // Rule 3: If X -> Y1 Y2 ... Yk,
                         // then add Follow(X) to Follow(Yk)
-                        println!(
-                            "Rule 3: Push Follow({}) to Follow({})",
+                        debug!(
+                            "[Follow Builder] Rule 3: Push Follow({}) to Follow({})",
                             production.lhs, term
                         );
                         changed |= self.insert_follow(term, &production.lhs);
 
                         if !self.first_produce_epsilon(term) {
-                            println!("{} does not produce ε, break", term);
+                            debug!("[Follow Builder] {} does not produce ε, break", term);
                             break;
                         }
                     } // Rule 3 checking End
@@ -152,7 +153,7 @@ impl<'grammar> FollowBuilder<'grammar> {
     pub(crate) fn insert_follow(&mut self, rx: &'grammar Term, tx: &'grammar Term) -> bool {
         // Follow(tx)
         let follow_tx = self.follow(tx);
-        println!("Insert {:?} to Follow({})", follow_tx, rx);
+        debug!("Insert {:?} to Follow({})", follow_tx, rx);
         // Insert Follow(tx) into Follow(rx)
         self.insert_set(rx, follow_tx)
     }
