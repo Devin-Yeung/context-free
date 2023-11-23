@@ -5,7 +5,10 @@ use std::str::FromStr;
 
 fn main() {
     pretty_env_logger::formatted_builder()
-        .filter(None, LevelFilter::Debug)
+        .filter_level(
+            LevelFilter::from_str(&std::env::var("RUST_LOG").unwrap_or(String::from("info")))
+                .unwrap(),
+        )
         .init();
 
     let grammar = r#"
