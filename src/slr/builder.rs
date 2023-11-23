@@ -7,7 +7,7 @@ use bnf::{Grammar, Production, Term};
 use std::cell::RefCell;
 use std::collections::HashMap;
 
-use log::debug;
+use log::{debug, info};
 use std::iter::repeat;
 use std::str::FromStr;
 
@@ -31,6 +31,7 @@ impl<'grammar> SLRTableBuilder<'grammar> {
                 .take(closure.len())
                 .collect(),
         );
+        info!("LR0 Closure:\n{}", closure.tabled());
         SLRTableBuilder {
             grammar,
             follow,
