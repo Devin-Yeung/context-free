@@ -44,7 +44,12 @@ impl<'grammar> LR0Closure<'grammar> {
     /// enumerate all the `from` states
     /// which means `(from, term) = to`
     pub fn enumerate_states(&self) -> impl Iterator<Item = usize> {
-        self.transitions.keys().map(|(i, _)| *i).sorted().unique()
+        self.transitions
+            .keys()
+            .map(|(i, _)| *i)
+            .chain(self.transitions.values().map(|i| *i))
+            .unique()
+            .sorted()
     }
 
     pub fn transition_table(&self) -> Table {
