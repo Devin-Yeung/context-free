@@ -9,7 +9,6 @@ use std::collections::HashMap;
 
 use log::{debug, info};
 use std::iter::repeat;
-use std::str::FromStr;
 
 pub struct SLRTableBuilder<'grammar> {
     grammar: IndexedGrammar<'grammar>,
@@ -31,7 +30,7 @@ impl<'grammar> SLRTableBuilder<'grammar> {
                 .take(closure.len())
                 .collect(),
         );
-        info!("LR0 Closure:\n{}", closure.tabled());
+        info!("LR0 Closure:\n{}", closure.closure_table());
         info!("LR0 Transition Table:\n{}", closure.transition_table());
         SLRTableBuilder {
             grammar,

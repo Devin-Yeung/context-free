@@ -5,7 +5,7 @@ use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 use std::hash::Hash;
-use std::mem::forget;
+
 use tabled::builder::Builder;
 use tabled::Table;
 
@@ -33,7 +33,7 @@ impl<'grammar> LR0Closure<'grammar> {
         &self.closures
     }
 
-    pub fn tabled(&self) -> Table {
+    pub fn closure_table(&self) -> Table {
         let mut builder = Builder::default();
         for set in self.closures.iter() {
             builder.push_record([set.to_string()]);
@@ -242,7 +242,7 @@ mod test {
     fn it_works() {
         let grammar = grammar();
         let augmentation = Production::from_str("<E'> ::= <E>").unwrap();
-        let closure = LR0Closure::new(&grammar, &augmentation).tabled();
+        let closure = LR0Closure::new(&grammar, &augmentation).closure_table();
         insta::assert_display_snapshot!(closure);
     }
 
