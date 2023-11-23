@@ -38,6 +38,7 @@ impl<'grammar> LR0Builder<'grammar> {
             symbols(self.grammar).for_each(|term| {
                 let goto = cur.goto(self.grammar, term);
                 if !goto.items.is_empty() && !self.contains(&goto) {
+                    debug!("[LR0 Closure Builder] goto({}, {}) = {}", cur, term, goto);
                     self.closures.push(goto);
                     waiting.push_back(self.closures.last().unwrap().clone());
                 }
@@ -49,11 +50,12 @@ impl<'grammar> LR0Builder<'grammar> {
         for closure in &self.closures {
             for term in symbols(self.grammar) {
                 let goto = closure.goto(self.grammar, term);
+                let cur_index = self.index_of(closure);
                 if goto.items.is_empty() {
+                    debug!("LR0: goto(I_{}, {}) = ∅", cur_index, term);
                     continue;
                 }
                 let goto_index = self.index_of(&goto);
-                let cur_index = self.index_of(closure);
                 self.transitions.insert((cur_index, term), goto_index);
                 debug!("LR0: goto(I_{}, {}) = I_{}", cur_index, term, goto_index);
             }
