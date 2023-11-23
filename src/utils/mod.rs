@@ -4,6 +4,7 @@ use once_cell::sync::OnceCell;
 
 pub mod first;
 pub mod follow;
+pub mod table;
 
 pub fn symbols(grammar: &Grammar) -> impl Iterator<Item = &Term> {
     grammar
