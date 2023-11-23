@@ -32,6 +32,7 @@ impl<'grammar> SLRTableBuilder<'grammar> {
                 .collect(),
         );
         info!("LR0 Closure:\n{}", closure.tabled());
+        info!("LR0 Transition Table:\n{}", closure.transition_table());
         SLRTableBuilder {
             grammar,
             follow,

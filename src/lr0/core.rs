@@ -5,6 +5,7 @@ use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 use std::hash::Hash;
+use std::mem::forget;
 use tabled::builder::Builder;
 use tabled::Table;
 
@@ -38,6 +39,42 @@ impl<'grammar> LR0Closure<'grammar> {
             builder.push_record([set.to_string()]);
         }
         builder.index().build()
+    }
+
+    /// enumerate all the `from` states
+    /// which means `(from, term) = to`
+    pub fn enumerate_states(&self) -> impl Iterator<Item = usize> {
+        self.transitions.keys().map(|(i, _)| *i).sorted().unique()
+    }
+
+    pub fn transition_table(&self) -> Table {
+        let mut builder = Builder::default();
+        let header = self
+            .transitions
+            .keys()
+            .map(|(_, t)| t)
+            .unique()
+            .sorted()
+            .collect::<Vec<_>>();
+        // header
+        builder.set_header(
+            std::iter::once(String::from("Closure/Symbol"))
+                .chain(header.iter().map(|t| t.to_string())),
+        );
+
+        self.enumerate_states().for_each(|from| {
+            let row = std::iter::once(format!("I_{}", from))
+                .chain(header.iter().map(|term| {
+                    match self.transition(from, term) {
+                        None => String::new(), /* ∅ */
+                        Some(to) => format!("I_{}", to),
+                    }
+                }))
+                .collect::<Vec<_>>();
+            builder.push_record(row);
+        });
+
+        builder.build()
     }
 
     pub fn enumerate_lr0<'a>(&'a self) -> impl Iterator<Item = (usize, &'a LR0Item<'grammar>)> {
@@ -207,6 +244,14 @@ mod test {
         let augmentation = Production::from_str("<E'> ::= <E>").unwrap();
         let closure = LR0Closure::new(&grammar, &augmentation).tabled();
         insta::assert_display_snapshot!(closure);
+    }
+
+    #[test]
+    fn deterministic_transition_table() {
+        let grammar = grammar();
+        let augmentation = Production::from_str("<E'> ::= <E>").unwrap();
+        let transitions = LR0Closure::new(&grammar, &augmentation).transition_table();
+        insta::assert_display_snapshot!(transitions);
     }
 
     #[test]
