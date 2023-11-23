@@ -122,7 +122,6 @@ impl<'grammar> Display for LR0Item<'grammar> {
             .rhs
             .terms_iter()
             .map(|t| t.to_string())
-            .sorted() // make display result deterministic
             .collect::<Vec<_>>();
         rhs.insert(self.delimiter, "•".to_string());
         s.extend(rhs);
