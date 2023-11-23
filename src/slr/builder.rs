@@ -7,6 +7,7 @@ use bnf::{Grammar, Production, Term};
 use std::cell::RefCell;
 use std::collections::HashMap;
 
+use log::debug;
 use std::iter::repeat;
 use std::str::FromStr;
 
@@ -40,7 +41,7 @@ impl<'grammar> SLRTableBuilder<'grammar> {
 
     fn shift(&self, from: usize, via: &'grammar Term) {
         let to = self.closure.transition(from, via).unwrap(); // TODO: really not sure whether this unwrap is safe?
-        println!("Shift: goto(I_{}, {}) = I_{}", from, via, to);
+        debug!("[SLR Builder] Shift: goto(I_{}, {}) = I_{}", from, via, to);
         let mut table = self.table.borrow_mut();
         table
             .get_mut(from)
@@ -54,14 +55,17 @@ impl<'grammar> SLRTableBuilder<'grammar> {
         let mut table = self.table.borrow_mut();
         for term in self.follow.follow_of(&prod.lhs).collect::<Vec<_>>() {
             table[index].insert(term, SLRInstruction::Reduce(grammar_index));
-            println!("Reduce: set (I_{}, {}) = r{}", index, term, grammar_index);
+            debug!(
+                "[SLR Builder] Reduce: set (I_{}, {}) = r{}",
+                index, term, grammar_index
+            );
         }
     }
 
     fn goto(&self, from: usize, via: &'grammar Term) {
         debug_assert!(matches!(via, Term::Nonterminal(_)));
         let to = self.closure.transition(from, via).unwrap(); // TODO: really not sure whether this unwrap is safe?
-        println!("Goto: goto(I_{}, {}) = I_{}", from, via, to);
+        debug!("[SLR Builder] Goto: goto(I_{}, {}) = I_{}", from, via, to);
         let mut table = self.table.borrow_mut();
         table
             .get_mut(from)

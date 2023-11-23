@@ -1,6 +1,7 @@
 use crate::lr0::core::{LR0Closure, LR0Item, LR0ItemSet};
 use crate::utils::symbols;
 use bnf::{Grammar, Production, Term};
+use log::debug;
 use std::collections::{HashMap, VecDeque};
 
 pub struct LR0Builder<'grammar> {
@@ -54,7 +55,7 @@ impl<'grammar> LR0Builder<'grammar> {
                 let goto_index = self.index_of(&goto);
                 let cur_index = self.index_of(closure);
                 self.transitions.insert((cur_index, term), goto_index);
-                println!("goto(I_{}, {}) = I_{}", cur_index, term, goto_index);
+                debug!("LR0: goto(I_{}, {}) = I_{}", cur_index, term, goto_index);
             }
         }
     }

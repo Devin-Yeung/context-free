@@ -1,6 +1,7 @@
 use crate::utils::first::First;
 use crate::utils::{epsilon, symbols};
 use bnf::{Grammar, Production, Term};
+use log::debug;
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 
@@ -43,7 +44,7 @@ impl<'grammar> FirstBuilder<'grammar> {
                     Term::Terminal(s) => {
                         // Rule1: If X is a terminal, then First(X) = { X }
                         self.insert_term(t, t);
-                        println!("Rule1: Push {} to First({})", s, t);
+                        debug!("[First Builder] Rule1: Push {} to First({})", s, t);
                     }
                     Term::Nonterminal(_) => { /* skip */ }
                 };
@@ -51,7 +52,7 @@ impl<'grammar> FirstBuilder<'grammar> {
                 if self.produce_epsilon(t) {
                     // Rule2: If X is an ε-production, then add ε to First(X)
                     self.insert_epsilon(t);
-                    println!("Rule2: Push ε to First({})", t);
+                    debug!("[First Builder] Rule2: Push ε to First({})", t);
                 }
             });
 
@@ -61,7 +62,7 @@ impl<'grammar> FirstBuilder<'grammar> {
             symbols(self.grammar)
                 .filter(|term| matches!(*term, Term::Nonterminal(_)))
                 .for_each(|lhs| {
-                    println!("===> Checking Symbol: {}", lhs);
+                    debug!("[First Builder] Checking Symbol: {}", lhs);
                     let production = self.lookup.get(lhs).unwrap();
                     // Rule3: If X is a non-terminal and X → Y1 Y2 ... Yk,
                     // then add First(Y1) ∖ {ε} to First(X)
@@ -72,27 +73,27 @@ impl<'grammar> FirstBuilder<'grammar> {
                         {
                             // First(Y1) ∖ {ε} to First(X)
                             changed |= self.insert_first_no_epsilon(&production.lhs, term);
-                            println!(
-                                "Rule3/4: Push First({}) \\ ε to First({})",
+                            debug!(
+                                "[First Builder] Rule3/4: Push First({}) \\ ε to First({})",
                                 term, production.lhs
                             );
                             // terminate (check next expression) if X does NOT produce ε
                             if !self.produce_epsilon(term) {
-                                println!("{} does NOT produce ε", term);
+                                debug!("[First Builder] {} does NOT produce ε", term);
                                 break;
                             }
                         }
                         // Rule 5: If X is a non-terminal and X -> Y1 Y2 ... Yk,
                         // and First(Yi) produce ε for all i, then add ε to First(X)
                         if expr.terms_iter().all(|term| self.produce_epsilon(term)) {
-                            println!("Rule5: Push ε to First({})", production.lhs);
+                            debug!("[First Builder] Rule5: Push ε to First({})", production.lhs);
                             changed = self.insert_epsilon(&production.lhs);
                         }
                     }
                 });
 
             if !changed {
-                println!("Unchanged, break!");
+                debug!("[First Builder] Unchanged, break!");
                 break;
             }
         } // End of loop
