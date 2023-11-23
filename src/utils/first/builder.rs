@@ -138,7 +138,6 @@ impl<'grammar> FirstBuilder<'grammar> {
     fn insert_term(&self, x: &'grammar Term, term: &'grammar Term) -> bool {
         let mut first = self.first.borrow_mut();
         // First(x)
-        dbg!(x);
         let first_x = first.get_mut(x).unwrap();
 
         // Insert term to First(x)
