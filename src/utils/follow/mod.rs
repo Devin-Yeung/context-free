@@ -23,7 +23,7 @@ impl<'grammar> Follow<'grammar> {
 
     pub fn tabled(&self) -> Table {
         let mut table = Builder::new();
-        table.set_header(["Term", "Follow(X)"]);
+        table.push_record(["Term", "Follow(X)"]);
         for (term, first) in self
             .follow
             .iter()

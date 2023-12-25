@@ -18,7 +18,7 @@ impl<'grammar> First<'grammar> {
 
     pub fn tabled(&self) -> Table {
         let mut table = Builder::new();
-        table.set_header(["Term", "First(X)"]);
+        table.push_record(["Term", "First(X)"]);
         for (term, first) in self
             .first
             .iter()
