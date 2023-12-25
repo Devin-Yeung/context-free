@@ -35,6 +35,7 @@ impl<'grammar> LR0Closure<'grammar> {
 
     pub fn closure_table(&self) -> Table {
         let mut builder = Builder::default();
+        builder.push_record(["LR0 Closure"]); // header
         for set in self.closures.iter() {
             builder.push_record([set.to_string()]);
         }
@@ -62,7 +63,7 @@ impl<'grammar> LR0Closure<'grammar> {
             .sorted()
             .collect::<Vec<_>>();
         // header
-        builder.set_header(
+        builder.push_record(
             std::iter::once(String::from("Closure/Symbol"))
                 .chain(header.iter().map(|t| t.to_string())),
         );

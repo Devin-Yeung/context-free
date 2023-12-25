@@ -52,7 +52,7 @@ impl<'grammar> SLRTable<'grammar> {
             .chain(self.grammar.non_terminals())
             .collect::<Vec<_>>();
 
-        builder.set_header(header.iter().map(|t| t.to_string()));
+        builder.push_record(header.iter().map(|t| t.to_string()));
 
         self.table.iter().enumerate().for_each(|(_, table)| {
             let row = header

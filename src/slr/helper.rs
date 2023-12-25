@@ -24,7 +24,7 @@ impl<'grammar> IndexedGrammar<'grammar> {
 
     pub fn grammar_table(&self) -> Table {
         let mut builder = Builder::default();
-        builder.set_header(["Rule"]);
+        builder.push_record(["Rule"]);
         self.grammar.iter().for_each(|(rhs, lhs)| {
             builder.push_record([format!("{} -> {}", lhs, rhs)]);
         });
