@@ -83,6 +83,8 @@ impl<'grammar> LR0Closure<'grammar> {
         builder.build()
     }
 
+    /// Iterate all the `LR0Set` in `LR0Closure`
+    /// return the `LR0Item` with its' `LR0Set` index
     pub fn enumerate_lr0<'a>(&'a self) -> impl Iterator<Item = (usize, &'a LR0Item<'grammar>)> {
         self.closures
             .iter()
