@@ -1,0 +1,264 @@
+---
+source: src/slr/core.rs
+expression: json
+---
+{
+  "grammar": [
+    {
+      "lhs": {
+        "Nonterminal": "E'"
+      },
+      "rhs": [
+        {
+          "terms": [
+            {
+              "Nonterminal": "E"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "lhs": {
+        "Nonterminal": "E"
+      },
+      "rhs": [
+        {
+          "terms": [
+            {
+              "Nonterminal": "E"
+            },
+            {
+              "Terminal": "+"
+            },
+            {
+              "Nonterminal": "T"
+            }
+          ]
+        },
+        {
+          "terms": [
+            {
+              "Nonterminal": "T"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "lhs": {
+        "Nonterminal": "T"
+      },
+      "rhs": [
+        {
+          "terms": [
+            {
+              "Nonterminal": "T"
+            },
+            {
+              "Terminal": "*"
+            },
+            {
+              "Nonterminal": "F"
+            }
+          ]
+        },
+        {
+          "terms": [
+            {
+              "Nonterminal": "F"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "lhs": {
+        "Nonterminal": "F"
+      },
+      "rhs": [
+        {
+          "terms": [
+            {
+              "Terminal": "("
+            },
+            {
+              "Nonterminal": "E"
+            },
+            {
+              "Terminal": ")"
+            }
+          ]
+        },
+        {
+          "terms": [
+            {
+              "Terminal": "id"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "table": [
+    {
+      "(": {
+        "Shift": 1
+      },
+      "id": {
+        "Shift": 2
+      },
+      "<E>": {
+        "Goto": 3
+      },
+      "<F>": {
+        "Goto": 4
+      },
+      "<T>": {
+        "Goto": 5
+      }
+    },
+    {
+      "(": {
+        "Shift": 1
+      },
+      "id": {
+        "Shift": 2
+      },
+      "<E>": {
+        "Goto": 6
+      },
+      "<F>": {
+        "Goto": 4
+      },
+      "<T>": {
+        "Goto": 5
+      }
+    },
+    {
+      "$": {
+        "Reduce": 6
+      },
+      ")": {
+        "Reduce": 6
+      },
+      "*": {
+        "Reduce": 6
+      },
+      "+": {
+        "Reduce": 6
+      }
+    },
+    {
+      "$": {
+        "Reduce": 0
+      },
+      "+": {
+        "Shift": 7
+      }
+    },
+    {
+      "$": {
+        "Reduce": 4
+      },
+      ")": {
+        "Reduce": 4
+      },
+      "*": {
+        "Reduce": 4
+      },
+      "+": {
+        "Reduce": 4
+      }
+    },
+    {
+      "$": {
+        "Reduce": 2
+      },
+      ")": {
+        "Reduce": 2
+      },
+      "*": {
+        "Shift": 8
+      },
+      "+": {
+        "Reduce": 2
+      }
+    },
+    {
+      ")": {
+        "Shift": 9
+      },
+      "+": {
+        "Shift": 7
+      }
+    },
+    {
+      "(": {
+        "Shift": 1
+      },
+      "id": {
+        "Shift": 2
+      },
+      "<F>": {
+        "Goto": 4
+      },
+      "<T>": {
+        "Goto": 10
+      }
+    },
+    {
+      "(": {
+        "Shift": 1
+      },
+      "id": {
+        "Shift": 2
+      },
+      "<F>": {
+        "Goto": 11
+      }
+    },
+    {
+      "$": {
+        "Reduce": 5
+      },
+      ")": {
+        "Reduce": 5
+      },
+      "*": {
+        "Reduce": 5
+      },
+      "+": {
+        "Reduce": 5
+      }
+    },
+    {
+      "$": {
+        "Reduce": 1
+      },
+      ")": {
+        "Reduce": 1
+      },
+      "*": {
+        "Shift": 8
+      },
+      "+": {
+        "Reduce": 1
+      }
+    },
+    {
+      "$": {
+        "Reduce": 3
+      },
+      ")": {
+        "Reduce": 3
+      },
+      "*": {
+        "Reduce": 3
+      },
+      "+": {
+        "Reduce": 3
+      }
+    }
+  ]
+}

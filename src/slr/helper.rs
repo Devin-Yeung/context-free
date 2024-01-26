@@ -1,14 +1,25 @@
 use bnf::{Expression, Grammar, Production, Term};
 use indexmap::IndexMap;
 use itertools::Itertools;
+use serde::ser::SerializeSeq;
+use serde::Serialize;
 use tabled::builder::Builder;
 use tabled::Table;
 
 pub struct IndexedGrammar<'grammar> {
-    /// rhs -> lhs
+    // rhs -> lhs
     grammar: IndexMap<&'grammar Expression, &'grammar Term>,
-    /// original
+    // original
     original: &'grammar Grammar,
+}
+
+impl Serialize for IndexedGrammar<'_> {
+    fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        s.collect_seq(self.original.productions_iter())
+    }
 }
 
 impl<'grammar> IndexedGrammar<'grammar> {
