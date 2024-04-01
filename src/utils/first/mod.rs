@@ -49,7 +49,7 @@ mod test {
 
         let first = First::new(&grammar);
 
-        insta::assert_display_snapshot!(first.tabled());
+        insta::assert_snapshot!(first.tabled());
     }
 
     #[test]
@@ -65,6 +65,6 @@ mod test {
         .parse()
         .unwrap();
         let first = First::new(&grammar);
-        insta::assert_display_snapshot!(first.tabled());
+        insta::assert_snapshot!(first.tabled());
     }
 }

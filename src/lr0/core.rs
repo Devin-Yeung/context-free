@@ -250,7 +250,7 @@ mod test {
         let grammar = grammar();
         let augmentation = Production::from_str("<E'> ::= <E>").unwrap();
         let closure = LR0Closure::new(&grammar, &augmentation).closure_table();
-        insta::assert_display_snapshot!(closure);
+        insta::assert_snapshot!(closure);
     }
 
     #[test]
@@ -258,7 +258,7 @@ mod test {
         let grammar = grammar();
         let augmentation = Production::from_str("<E'> ::= <E>").unwrap();
         let transitions = LR0Closure::new(&grammar, &augmentation).transition_table();
-        insta::assert_display_snapshot!(transitions);
+        insta::assert_snapshot!(transitions);
     }
 
     #[test]

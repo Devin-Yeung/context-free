@@ -55,7 +55,7 @@ mod tests {
         .unwrap();
         let start = Term::from_str("<E>").unwrap();
         let follow = Follow::new(&grammar, &start);
-        insta::assert_display_snapshot!(follow.tabled());
+        insta::assert_snapshot!(follow.tabled());
     }
 
     #[test]
@@ -72,6 +72,6 @@ mod tests {
         .unwrap();
         let start = Term::from_str("<P>").unwrap();
         let follow = Follow::new(&grammar, &start);
-        insta::assert_display_snapshot!(follow.tabled());
+        insta::assert_snapshot!(follow.tabled());
     }
 }

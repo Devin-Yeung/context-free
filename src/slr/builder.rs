@@ -119,6 +119,6 @@ mod tests {
 
         let builder = SLRTableBuilder::new(&grammar, &augmentation);
         let slr = builder.build();
-        insta::assert_display_snapshot!(slr);
+        insta::assert_snapshot!(slr);
     }
 }
